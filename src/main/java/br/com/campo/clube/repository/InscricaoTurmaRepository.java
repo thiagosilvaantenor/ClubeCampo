@@ -3,8 +3,8 @@ package br.com.campo.clube.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.com.campo.clube.model.Associado;
-import br.com.campo.clube.model.InscricaoTurma;
+import br.com.campo.clube.model.Turma;
 
-public interface InscricaoTurmaRepository extends  JpaRepository<InscricaoTurma, Long>{
+public interface InscricaoTurmaRepository extends  JpaRepository<Turma, Long>{
 
 }

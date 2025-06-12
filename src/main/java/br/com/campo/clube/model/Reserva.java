@@ -15,6 +15,7 @@ public class Reserva {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id_reserva")
 	private Long id;
 	@ManyToOne
 	@JoinColumn(name="area_id", nullable=false)
@@ -26,6 +27,7 @@ public class Reserva {
 	private LocalDateTime dtReservaInicio;
 	@Column(name = "dt_reserva_fim")
 	private LocalDateTime dtReservaFim;
+	@Column(name = "status_reserva")
 	private String statusReserva;
 	
 	

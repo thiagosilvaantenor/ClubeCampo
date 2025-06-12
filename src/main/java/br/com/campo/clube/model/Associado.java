@@ -2,8 +2,6 @@ package br.com.campo.clube.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.format.annotation.DateTimeFormat;
-
 import br.com.campo.clube.controller.AssociadoDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,6 +23,7 @@ import lombok.Setter;
 public class Associado {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id_associado")
 	private Long id;
 	private String nomeCompleto;
 	@Column(length = 9)
@@ -34,7 +33,6 @@ public class Associado {
 	private String tipo;
 	private Boolean carteirinhaBloqueada;
 	
-	//BRAINSTROM: Talvez faria mais sentido separar em uma entidade Telefones?
 	@Column(length = 10)
 	private String telefoneResidencial;
 	@Column(length = 10)
@@ -42,7 +40,6 @@ public class Associado {
 	@Column(length = 11)
 	private String telefoneCelular;
 	
-	//BRAINSTROM: Talvez faria mais sentido separar em uma entidade Endereco?
 	@Column(length = 8)
 	private String cep;
 	private String logradouro;
@@ -51,7 +48,6 @@ public class Associado {
 	@Column(length = 2)
 	private String estado;
 	
-	//@DateTimeFormat(pattern = "DD/MM/YYYY HH:MM:SS")
 	private LocalDateTime dt_cadastro;
 	
 
