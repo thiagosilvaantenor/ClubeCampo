@@ -4,14 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import br.com.campo.clube.dto.AssociadoDTO;
+import br.com.campo.clube.dto.AssociadoDadosAtualizacao;
+import br.com.campo.clube.dto.AssociadoDadosCadastro;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.service.AssociadoService;
@@ -24,12 +22,12 @@ public class AssociadoController {
 	private AssociadoService service;
 
 	@PostMapping
-	public ResponseEntity<Associado> criarAssociado(@RequestBody AssociadoDTO associado) {
+	public ResponseEntity<Associado> criarAssociado(@RequestBody AssociadoDadosCadastro dados) {
+
 		Associado salvo = null;
-		if (associado != null) {
-			//Cria o Associado com os dados do DTO 
-			Associado novo = new Associado(associado);
-			salvo = service.salvar(novo);
+		if (dados != null) {
+			//Envia os dados do DTO para a service criar o Associado e salvar
+			salvo = service.salvar(dados);
 		}
 		//Se o service retornou um Associado então deu tudo certo
 		if (salvo != null) {
@@ -49,7 +47,7 @@ public class AssociadoController {
 			
 		//Itera sobre a lista de associados, para cada item cria um DTO com os dados desse associado
 		associados.forEach( associado -> {
-			dtos.add(new AssociadoDTO(associado.getNomeCompleto(), 
+			dtos.add(new AssociadoDTO(associado.getNomeCompleto(),
 					associado.getRg(), associado.getCpf(), associado.getTipo(),
 					associado.getCarteirinhaBloqueada(),
 					associado.getTelefoneResidencial(),
@@ -96,4 +94,33 @@ public class AssociadoController {
 		 //Caso o Optional não contenha um associado, retorna not found/404
 		return ResponseEntity.notFound().build();
 	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<Object> atualizarAssociado(@PathVariable Long id, AssociadoDadosAtualizacao dados) {
+		//Busca o associado no banco de dados é retornado um Optional
+		Optional<Associado> associado = service.buscarPeloId(id);
+		//Caso não encontre o associado retorna
+		if (associado.isEmpty()){
+			return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum associado");
+		}
+		Associado encontrado = associado.get();
+		AssociadoDTO atualizado = service.atualizar(encontrado, dados);
+		return ResponseEntity.ok(atualizado);
+	}
+
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Object> excluir(@PathVariable Long id){
+		//Busca o associado no banco de dados é retornado um Optional
+		Optional<Associado> associado = service.buscarPeloId(id);
+		//Caso não encontre o associado retorna 404
+		if (associado.isEmpty()){
+			return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum associado");
+		}
+		Associado encontrado = associado.get();
+		service.excluir(encontrado);
+
+		return ResponseEntity.ok().build();
+	}
 }
+

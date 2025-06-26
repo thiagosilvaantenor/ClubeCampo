@@ -2,12 +2,8 @@ package br.com.campo.clube.model;
 
 import java.time.LocalDateTime;
 
-import br.com.campo.clube.controller.AssociadoDTO;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import br.com.campo.clube.dto.AssociadoDadosCadastro;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -15,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@Table(name = "associado")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,19 +22,24 @@ public class Associado {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="id_associado")
 	private Long id;
+	@Column(name = "telefone_residencial")
 	private String nomeCompleto;
 	@Column(length = 9)
 	private String rg;
 	@Column(length = 11)
 	private String cpf;
-	private String tipo;
+
+	@ManyToOne
+	@JoinColumn(name = "id_tipo_associado")
+	private TipoAssociado tipo;
+	@Column(name = "carteirinha_bloqueada")
 	private Boolean carteirinhaBloqueada;
 	
-	@Column(length = 10)
+	@Column(name = "telefone_residencial", length = 10)
 	private String telefoneResidencial;
-	@Column(length = 10)
+	@Column(name = "telefone_comercial",length = 10)
 	private String telefoneComercial;
-	@Column(length = 11)
+	@Column(name = "telefone_celular",length = 11)
 	private String telefoneCelular;
 	
 	@Column(length = 8)
@@ -47,16 +49,17 @@ public class Associado {
 	private String cidade;
 	@Column(length = 2)
 	private String estado;
-	
-	private LocalDateTime dt_cadastro;
-	
+
+	@Column(name = "dt_cadastro")
+	private LocalDateTime dtCadastro;
 
 
-	public Associado(AssociadoDTO dados) {
+
+	public Associado(AssociadoDadosCadastro dados) {
 		this.nomeCompleto = dados.nomeCompleto();
 		this.rg = dados.rg();
 		this.cpf = dados.cpf();
-		this.tipo = dados.tipo();
+		//Tipo vai ser adicionado no controller
 		this.carteirinhaBloqueada = dados.carteirinhaBloqueada();
 		this.telefoneResidencial = dados.telefoneResidencial();
 		this.telefoneComercial = dados.telefoneComercial();
@@ -66,7 +69,7 @@ public class Associado {
 		this.bairro = dados.bairro();
 		this.cidade = dados.cidade();
 		this.estado = dados.estado();
-		this.dt_cadastro = LocalDateTime.now();
+		this.dtCadastro = LocalDateTime.now();
 	}
 
 	

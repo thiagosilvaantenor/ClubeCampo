@@ -1,19 +1,18 @@
 package br.com.campo.clube.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Turma {
@@ -28,28 +27,20 @@ public class Turma {
 	private LocalDateTime dtHorario;
 	@Column(name = "vagas_disponiveis", nullable = false, length = 2)
 	private Integer vagasDisponiveis;
-	@ManyToMany(mappedBy = "turmas")
-	ParticipanteTurma[] participantes = new ParticipanteTurma[this.vagasDisponiveis];
+	@OneToMany(mappedBy = "turma")
+	private List<ParticipanteTurmaAssociado> associados = new ArrayList<>();
+	@OneToMany(mappedBy = "turma")
+	private List<ParticipanteTurmaDependente> dependentes = new ArrayList<>();
+	@Column(name = "vagas_esgotadas")
+	private Boolean vagasEsgotadas;
 	
-	//Setters
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public void setNomeTurma(String nomeTurma) {
-		this.nomeTurma = nomeTurma;
-	}
-	public void setDtHorario(LocalDateTime dtHorario) {
-		this.dtHorario = dtHorario;
-	}
-	public void setVagasDisponiveis(Integer vagasDisponiveis) {
-		this.vagasDisponiveis = vagasDisponiveis;
-	}
-	public void setParticipantes(ParticipanteTurma[] participantes) {
+	//participantes precisa de um Setter especifico
+	public void setParticipantesTurma(List<ParticipanteTurmaAssociado> participantes) {
 		
 		//Verifica se a quantidade de participantes é menor ou igual a quantidade de vagasDisponiveis
-		if (participantes.length <= this.vagasDisponiveis)
-			this.participantes = participantes;
-		if(this.participantes.length == this.vagasDisponiveis)
+		if (participantes.size() <= this.vagasDisponiveis)
+			this.associados = participantes;
+		if(this.associados.size() == this.vagasDisponiveis)
 			System.out.println("Não é possivel adicionar mais participantes");
 	}
 	

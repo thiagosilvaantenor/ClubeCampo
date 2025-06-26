@@ -5,8 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(of = "id")
 public class Area {
 
 	@Id
@@ -17,8 +26,10 @@ public class Area {
 	private String nomeArea;
 	@Column(name="tipo_area")
 	private String tipoArea;
-	@Column(name="valor_area")
-	private Double valorArea;
-	@Column(name="reservado")
-	private Boolean reservado;
+	@Column(name="valor_area", precision = 10, scale = 2)
+	private BigDecimal valorArea;
+	@Column(name="reservavel")
+	private Boolean reservavel;
+	@Column(name = "quantidade")
+	private Integer quantidade;
 }
