@@ -22,7 +22,7 @@ public class Associado {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="id_associado")
 	private Long id;
-	@Column(name = "telefone_residencial")
+	@Column(name = "nome_completo")
 	private String nomeCompleto;
 	@Column(length = 9)
 	private String rg;
