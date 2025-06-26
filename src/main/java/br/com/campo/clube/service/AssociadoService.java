@@ -19,13 +19,17 @@ public class AssociadoService {
 	@Autowired
 	private AssociadoRepository repository;
 
+	@Autowired
 	private TipoAssociadoRepository tipoRepository;
 
 	public Associado salvar(AssociadoDadosCadastro novo) {
 		Associado associado = new Associado(novo);
 		//Busca o tipo pelo id
-		TipoAssociado tipo = tipoRepository.getReferenceById(novo.tipoId());
-        associado.setTipo(tipo);
+		if(novo.tipoId() != null){
+			TipoAssociado tipo = tipoRepository.getReferenceById(novo.tipoId());
+			associado.setTipo(tipo);
+			tipo.getAssociados().add(associado);
+		}
         return repository.save(associado);
 	}
 	
