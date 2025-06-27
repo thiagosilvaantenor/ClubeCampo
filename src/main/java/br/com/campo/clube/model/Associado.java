@@ -60,7 +60,6 @@ public class Associado {
 		this.rg = dados.rg();
 		this.cpf = dados.cpf();
 		//Tipo vai ser adicionado no controller
-		this.carteirinhaBloqueada = dados.carteirinhaBloqueada();
 		this.telefoneResidencial = dados.telefoneResidencial();
 		this.telefoneComercial = dados.telefoneComercial();
 		this.telefoneCelular = dados.telefoneCelular();

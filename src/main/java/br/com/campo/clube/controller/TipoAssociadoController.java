@@ -1,13 +1,12 @@
 package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.TipoAssociadoDTO;
-import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.model.TipoAssociado;
 import br.com.campo.clube.service.TipoAssociadoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -20,9 +19,9 @@ public class TipoAssociadoController {
     @Autowired
     private TipoAssociadoService service;
 
-    //FIXME: Não esta salvando
+
     @PostMapping
-    public ResponseEntity<Object> cadastrarTipo(TipoAssociadoDTO dados){
+    public ResponseEntity<Object> cadastrarTipo(@RequestBody @Valid TipoAssociadoDTO dados){
         if (dados != null){
             TipoAssociado salvo = service.salvar(dados);
             if (salvo != null)

@@ -1,5 +1,6 @@
 package br.com.campo.clube.model;
 
+import br.com.campo.clube.dto.AreaDadosCadastro;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,4 +33,11 @@ public class Area {
 	private Boolean reservavel;
 	@Column(name = "quantidade")
 	private Integer quantidade;
+
+	public Area(AreaDadosCadastro dados) {
+		this.nomeArea = dados.nomeArea();
+		this.tipoArea = dados.tipoArea();
+		this.reservavel = dados.reservavel();
+		this.quantidade = dados.quantidade();
+	}
 }

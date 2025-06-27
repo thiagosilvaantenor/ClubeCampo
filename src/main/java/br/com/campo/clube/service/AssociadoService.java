@@ -3,11 +3,13 @@ package br.com.campo.clube.service;
 import java.util.List;
 import java.util.Optional;
 
-import br.com.campo.clube.dto.AssociadoDTO;
 import br.com.campo.clube.dto.AssociadoDadosAtualizacao;
 import br.com.campo.clube.dto.AssociadoDadosCadastro;
+import br.com.campo.clube.dto.AssociadoDadosExibicao;
+import br.com.campo.clube.dto.TipoAssociadoDadosExibicao;
 import br.com.campo.clube.model.TipoAssociado;
 import br.com.campo.clube.repository.TipoAssociadoRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +48,7 @@ public class AssociadoService {
 		repository.delete(encontrado);
     }
 
-	public AssociadoDTO atualizar(Associado associado, AssociadoDadosAtualizacao dados) {
+	public AssociadoDadosExibicao atualizar(Associado associado, @Valid AssociadoDadosAtualizacao dados) {
 
 		if (dados.nomeCompleto() != null && !dados.nomeCompleto().isBlank()){
 			associado.setNomeCompleto(dados.nomeCompleto());
@@ -60,7 +62,12 @@ public class AssociadoService {
 		if (dados.tipoId() != null ) {
 			TipoAssociado tipo = tipoRepository.getReferenceById(dados.tipoId());
 			if (tipo != null){
+				//Remove o associado da lista que esta em tipo (antigo)
+				associado.getTipo().getAssociados().remove(associado);
+				//Coloca novo tipo
 				associado.setTipo(tipo);
+				//Add associado ao novo tipo
+				tipo.getAssociados().add(associado);
 			}
 		}
 		if (dados.cep() != null && !dados.cep().isBlank()){
@@ -91,10 +98,17 @@ public class AssociadoService {
 			associado.setTelefoneResidencial(dados.telefoneResidencial());
 		}
 
-		return new AssociadoDTO(associado.getNomeCompleto(),
+		return new AssociadoDadosExibicao(
+				associado.getId(),
+				associado.getNomeCompleto(),
 				associado.getRg(),
 				associado.getCpf(),
-				associado.getTipo(),
+				//Cria o DTO de exibicao de tipoAssociado
+				new TipoAssociadoDadosExibicao(
+						associado.getTipo().getId(),
+						associado.getTipo().getNome(),
+						associado.getTipo().getValor()
+				),
 				associado.getCarteirinhaBloqueada(),
 				associado.getTelefoneResidencial(),
 				associado.getTelefoneComercial(),

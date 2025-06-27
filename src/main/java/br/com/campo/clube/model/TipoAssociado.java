@@ -1,6 +1,8 @@
 package br.com.campo.clube.model;
 
+import br.com.campo.clube.dto.AreaDadosCadastro;
 import br.com.campo.clube.dto.TipoAssociadoDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,10 +28,12 @@ public class TipoAssociado {
     @Column(name = "valor", precision = 10, scale = 2, nullable = false)
     private BigDecimal valor;
     @OneToMany(mappedBy = "tipo")
+    @JsonIgnore
     private List<Associado> associados;
 
     public TipoAssociado(TipoAssociadoDTO dados) {
         this.nome = dados.nome();
         this.valor = dados.valor();
     }
+
 }

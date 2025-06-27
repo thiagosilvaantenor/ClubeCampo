@@ -7,6 +7,8 @@ import java.util.Optional;
 import br.com.campo.clube.dto.AssociadoDTO;
 import br.com.campo.clube.dto.AssociadoDadosAtualizacao;
 import br.com.campo.clube.dto.AssociadoDadosCadastro;
+import br.com.campo.clube.dto.AssociadoDadosExibicao;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ public class AssociadoController {
 	private AssociadoService service;
 
 	@PostMapping
-	public ResponseEntity<Associado> criarAssociado(@RequestBody AssociadoDadosCadastro dados) {
+	public ResponseEntity<Associado> criarAssociado(@RequestBody  @Valid AssociadoDadosCadastro dados) {
 
 		Associado salvo = null;
 		if (dados != null) {
@@ -96,7 +98,7 @@ public class AssociadoController {
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<Object> atualizarAssociado(@PathVariable Long id, AssociadoDadosAtualizacao dados) {
+	public ResponseEntity<Object> atualizarAssociado(@PathVariable Long id, @RequestBody AssociadoDadosAtualizacao dados) {
 		//Busca o associado no banco de dados é retornado um Optional
 		Optional<Associado> associado = service.buscarPeloId(id);
 		//Caso não encontre o associado retorna
@@ -104,7 +106,7 @@ public class AssociadoController {
 			return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum associado");
 		}
 		Associado encontrado = associado.get();
-		AssociadoDTO atualizado = service.atualizar(encontrado, dados);
+		AssociadoDadosExibicao atualizado = service.atualizar(encontrado, dados);
 		return ResponseEntity.ok(atualizado);
 	}
 
