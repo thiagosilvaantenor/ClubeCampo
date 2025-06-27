@@ -37,6 +37,7 @@ public class Area {
 	public Area(AreaDadosCadastro dados) {
 		this.nomeArea = dados.nomeArea();
 		this.tipoArea = dados.tipoArea();
+		this.valorArea = dados.valorArea();
 		this.reservavel = dados.reservavel();
 		this.quantidade = dados.quantidade();
 	}

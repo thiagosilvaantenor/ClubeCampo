@@ -75,7 +75,7 @@ public class AreaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> atualizarAssociado(@PathVariable Long id, @RequestBody AreaDadosCadastro dados) {
+    public ResponseEntity<Object> atualizarArea(@PathVariable Long id, @RequestBody AreaDadosCadastro dados) {
         //Busca o associado no banco de dados é retornado um Optional
         Optional<Area> area = service.buscarAreaPeloId(id);
         //Caso não encontre o associado retorna
