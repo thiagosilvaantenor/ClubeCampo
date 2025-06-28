@@ -25,3 +25,4 @@ public record AssociadoDadosExibicao(
      @Size(min = 2, max = 2, message = "a sigla do estado deve ter exatos 2 letras")
      String estado) {
 }
+

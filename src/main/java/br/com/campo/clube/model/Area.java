@@ -27,8 +27,6 @@ public class Area {
 	private String nomeArea;
 	@Column(name="tipo_area")
 	private String tipoArea;
-	@Column(name="valor_area", precision = 10, scale = 2)
-	private BigDecimal valorArea;
 	@Column(name="reservavel")
 	private Boolean reservavel;
 	@Column(name = "quantidade")
@@ -37,7 +35,6 @@ public class Area {
 	public Area(AreaDadosCadastro dados) {
 		this.nomeArea = dados.nomeArea();
 		this.tipoArea = dados.tipoArea();
-		this.valorArea = dados.valorArea();
 		this.reservavel = dados.reservavel();
 		this.quantidade = dados.quantidade();
 	}

@@ -49,7 +49,7 @@ public class AreaController {
         areas.forEach( area -> {
             dtos.add(new AreaDadosExibicao(
                     area.getId(), area.getNomeArea(), area.getTipoArea(),
-                    area.getValorArea(),area.getReservavel(), area.getQuantidade())
+                    area.getReservavel(), area.getQuantidade())
             );
         });
         //Retorna 200 com os DTOS no body
@@ -67,7 +67,7 @@ public class AreaController {
             Area encontrado = area.get();
             return ResponseEntity.ok(new AreaDadosExibicao(
                             encontrado.getId(), encontrado.getNomeArea(), encontrado.getTipoArea(),
-                            encontrado.getValorArea(),encontrado.getReservavel(), encontrado.getQuantidade())
+                            encontrado.getReservavel(), encontrado.getQuantidade())
             );
         }
         //Caso o Optional não contenha um area, retorna not found/404

@@ -1,9 +1,8 @@
 package br.com.campo.clube.service;
 
-import br.com.campo.clube.dto.*;
+import br.com.campo.clube.dto.AreaDadosCadastro;
+import br.com.campo.clube.dto.AreaDadosExibicao;
 import br.com.campo.clube.model.Area;
-import br.com.campo.clube.model.Associado;
-import br.com.campo.clube.model.TipoAssociado;
 import br.com.campo.clube.repository.AreaRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +46,6 @@ public class AreaService {
         if (dados.quantidade() != null){
             area.setQuantidade(dados.quantidade());
         }
-        if (dados.valorArea() != null ){
-            area.setValorArea(dados.valorArea());
-        }
         if (dados.reservavel() != null) {
             area.setReservavel(dados.reservavel());
         }
@@ -57,6 +53,6 @@ public class AreaService {
 
         return new AreaDadosExibicao(
                 area.getId(), area.getNomeArea(), area.getTipoArea(),
-                area.getValorArea(),area.getReservavel(), area.getQuantidade());
+                area.getReservavel(), area.getQuantidade());
     }
 }

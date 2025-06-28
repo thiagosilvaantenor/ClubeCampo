@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import br.com.campo.clube.dto.AssociadoDTO;
-import br.com.campo.clube.dto.AssociadoDadosAtualizacao;
-import br.com.campo.clube.dto.AssociadoDadosCadastro;
-import br.com.campo.clube.dto.AssociadoDadosExibicao;
+import br.com.campo.clube.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +21,7 @@ public class AssociadoController {
 	private AssociadoService service;
 
 	@PostMapping
-	public ResponseEntity<Associado> criarAssociado(@RequestBody  @Valid AssociadoDadosCadastro dados) {
+	public ResponseEntity<AssociadoDadosExibicao> criarAssociado(@RequestBody  @Valid AssociadoDadosCadastro dados) {
 
 		Associado salvo = null;
 		if (dados != null) {
@@ -34,41 +31,30 @@ public class AssociadoController {
 		//Se o service retornou um Associado então deu tudo certo
 		if (salvo != null) {
 			//Retorna 201, CREATED com o associado no body
-			return ResponseEntity.status(201).body(salvo);
+
+			return ResponseEntity.status(201).body(toAssociadoDadosExibicao(salvo));
 		}
         //Se não retorna badRequest/400
         return ResponseEntity.badRequest().build();
 	}
 	
 	@GetMapping
-	public ResponseEntity<List<AssociadoDTO>> exibirAssociados(){
+	public ResponseEntity<List<AssociadoDadosExibicao>> exibirAssociados(){
 		//Busca os associados no banco de dados
 		List<Associado> associados = service.buscarTodos();
 		
-		List<AssociadoDTO> dtos = new ArrayList<>();
+		List<AssociadoDadosExibicao> dtos = new ArrayList<>();
 			
 		//Itera sobre a lista de associados, para cada item cria um DTO com os dados desse associado
 		associados.forEach( associado -> {
-			dtos.add(new AssociadoDTO(associado.getNomeCompleto(),
-					associado.getRg(), associado.getCpf(), associado.getTipo(),
-					associado.getCarteirinhaBloqueada(),
-					associado.getTelefoneResidencial(),
-					associado.getTelefoneComercial(),
-					associado.getTelefoneCelular(),
-					associado.getCep(),
-					associado.getLogradouro(),
-					associado.getBairro(),
-					associado.getCidade(),
-					associado.getEstado()
-					)
-				);
+			dtos.add(toAssociadoDadosExibicao(associado));
 		});
 		//Retorna 200 com os DTOS no body
 		return ResponseEntity.ok(dtos);
 	}
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<AssociadoDTO> exibirAssociado(@PathVariable Long id){
+	public ResponseEntity<AssociadoDadosExibicao> exibirAssociado(@PathVariable Long id){
 		//Busca o associado no banco de dados é retornado um Optional
 		Optional<Associado> associado = service.buscarPeloId(id);
 		
@@ -76,22 +62,7 @@ public class AssociadoController {
 		if (associado.isPresent()) {
 			 //Se sim, pega o associado e com os dados dele cria um DTO pra ser retornado com ok/200
 			Associado encontrado = associado.get();
-			return ResponseEntity.ok(new AssociadoDTO(
-					encontrado.getNomeCompleto(), 
-					encontrado.getRg(), 
-					encontrado.getCpf(), 
-					encontrado.getTipo(),
-					encontrado.getCarteirinhaBloqueada(),
-					encontrado.getTelefoneResidencial(),
-					encontrado.getTelefoneComercial(),
-					encontrado.getTelefoneCelular(),
-					encontrado.getCep(),
-					encontrado.getLogradouro(),
-					encontrado.getBairro(),
-					encontrado.getCidade(),
-					encontrado.getEstado()
-					)
-				);
+			return ResponseEntity.ok(toAssociadoDadosExibicao(encontrado));
 		}
 		 //Caso o Optional não contenha um associado, retorna not found/404
 		return ResponseEntity.notFound().build();
@@ -124,5 +95,17 @@ public class AssociadoController {
 
 		return ResponseEntity.ok().build();
 	}
+
+	//Conversor de Entidade para DTO
+	private AssociadoDadosExibicao toAssociadoDadosExibicao(Associado associado){
+		return new AssociadoDadosExibicao(associado.getId(),associado.getNomeCompleto(),associado.getRg(),
+				associado.getCpf(),new TipoAssociadoDadosExibicao(associado.getTipo().getId(),
+				associado.getTipo().getNome(),associado.getTipo().getValor()),associado.getCarteirinhaBloqueada(),
+				associado.getTelefoneResidencial(), associado.getTelefoneComercial(), associado.getTelefoneCelular(),
+				associado.getCep(), associado.getLogradouro(), associado.getBairro(), associado.getCidade(),
+				associado.getEstado());
+	}
+
+
 }
 

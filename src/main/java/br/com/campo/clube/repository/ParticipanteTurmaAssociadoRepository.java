@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.com.campo.clube.model.ParticipanteTurmaAssociado;
 
-public interface ParticipaneteTurmaRepository extends  JpaRepository<ParticipanteTurmaAssociado, Long>{
+public interface ParticipanteTurmaAssociadoRepository extends  JpaRepository<ParticipanteTurmaAssociado, Long>{
 
 }

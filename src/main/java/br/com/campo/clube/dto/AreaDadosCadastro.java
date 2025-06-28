@@ -11,8 +11,6 @@ public record AreaDadosCadastro(
         String nomeArea,
         @NotBlank(message = "Tipo da area não pode estar em branco")
         String tipoArea,
-        @NotNull(message = "valor da área não pode estar em branco")
-        BigDecimal valorArea,
         @NotNull(message = "reservavel não pode ser nulo")
         Boolean reservavel,
         Integer quantidade
