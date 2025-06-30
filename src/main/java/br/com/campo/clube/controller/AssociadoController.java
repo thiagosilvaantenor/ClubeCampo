@@ -96,6 +96,8 @@ public class AssociadoController {
 		return ResponseEntity.ok().build();
 	}
 
+	//TODO: BLOQUEIO E DESBLOQUEIO DA CARTEIRINHA
+
 	//Conversor de Entidade para DTO
 	private AssociadoDadosExibicao toAssociadoDadosExibicao(Associado associado){
 		return new AssociadoDadosExibicao(associado.getId(),associado.getNomeCompleto(),associado.getRg(),
