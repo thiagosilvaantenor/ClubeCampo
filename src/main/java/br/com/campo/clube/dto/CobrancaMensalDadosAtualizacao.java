@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 
 public record CobrancaMensalDadosAtualizacao(
@@ -13,7 +12,8 @@ public record CobrancaMensalDadosAtualizacao(
         LocalDate dtVencimento,
         BigDecimal valorPadrao,
         BigDecimal valorFinal,
+        @JsonFormat(pattern="MM-yyyy")
         YearMonth mesAno,
-        Boolean emAtraso
+        Boolean pago
 ) {
 }

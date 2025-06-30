@@ -2,7 +2,7 @@ package br.com.campo.clube.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 import java.time.YearMonth;
 
 import br.com.campo.clube.dto.CobrancaMensalDadosCadastro;
@@ -35,15 +35,15 @@ public class CobrancaMensal {
 	private BigDecimal valorFinal;
 	@Column(name = "mes_ano", nullable = false)
 	private YearMonth mesAno;
-	@Column(name = "em_Atraso", nullable = true)
+	@Column(name = "pago", nullable = true)
 	// Atributo utilizado para representar mensalidade atrasada
-	private Boolean emAtraso;
+	private Boolean pago;
 
 	public CobrancaMensal(CobrancaMensalDadosCadastro dados) {
 		this.dtVencimento = dados.dtVencimento();
 		//valorPadrão será de acordo com o valor do tipo do associado
 		//valorFinal será ajustado no service
 		this.mesAno = dados.mesAno();
-		//Em atraso, vai ser verificada no service
+		//pago, vai ser verificada no service
 	}
 }

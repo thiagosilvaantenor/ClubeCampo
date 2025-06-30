@@ -1,9 +1,13 @@
 package br.com.campo.clube.repository;
 
+import br.com.campo.clube.model.Associado;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.com.campo.clube.model.CobrancaMensal;
 
+import java.util.List;
+
 public interface CobrancaMensalRepository extends  JpaRepository<CobrancaMensal, Long>{
 
+    List<CobrancaMensal> findByAssociadoAndPago(Associado associado, boolean pago);
 }

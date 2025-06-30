@@ -14,6 +14,6 @@ public record CobrancaMensalDadosExibicao(
         BigDecimal valorPadrao,
         BigDecimal valorFinal,
         YearMonth mesAno,
-        Boolean emAtraso
+        Boolean pago
 ) {
 }
