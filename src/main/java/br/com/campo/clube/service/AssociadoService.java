@@ -1,5 +1,6 @@
 package br.com.campo.clube.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,7 +8,9 @@ import br.com.campo.clube.dto.AssociadoDadosAtualizacao;
 import br.com.campo.clube.dto.AssociadoDadosCadastro;
 import br.com.campo.clube.dto.AssociadoDadosExibicao;
 import br.com.campo.clube.dto.TipoAssociadoDadosExibicao;
+import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.model.TipoAssociado;
+import br.com.campo.clube.repository.CobrancaMensalRepository;
 import br.com.campo.clube.repository.TipoAssociadoRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,9 @@ public class AssociadoService {
 
 	@Autowired
 	private TipoAssociadoRepository tipoRepository;
+
+	@Autowired
+	private CobrancaMensalRepository cobrancaRepository;
 
 	public Associado salvar(AssociadoDadosCadastro novo) {
 		Associado associado = new Associado(novo);
@@ -118,5 +124,26 @@ public class AssociadoService {
 				associado.getBairro(),
 				associado.getCidade(),
 				associado.getEstado());
+	}
+
+	//Verifica a quantidade de meses de inadimplência, o resultado vai ser tratado nas seguintes services: Reserva, Area e ParticipanteTurmaAssociado
+	public Integer verificaQntInadimplencia(Associado associado){
+		//Busca as cobranças com paga == false e dtVencimento que ja passou, comparando com o dia de hoje, e retorna a quantidade de ocorrencias
+		List<CobrancaMensal> cobrancas = cobrancaRepository.findByAssociadoAndPago(associado, false);
+		if(cobrancas.isEmpty()){
+			//se a lista esta vazia significa que todas cobranças desse associado estão pagas
+			return 0;
+		}
+		int quantidade = 0;
+		for(CobrancaMensal cobranca : cobrancas) {
+			//Verifica se a data de vencimento já passou
+			if (cobranca.getDtVencimento().isBefore(LocalDate.now())) {
+				//se sim aumenta a quantidade de inadimplências
+				quantidade++;
+			}
+		}
+		//retorna a quantidade de inadimplências
+		return quantidade;
+
 	}
 }

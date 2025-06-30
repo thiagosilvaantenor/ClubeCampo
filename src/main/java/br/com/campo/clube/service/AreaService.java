@@ -3,6 +3,7 @@ package br.com.campo.clube.service;
 import br.com.campo.clube.dto.AreaDadosCadastro;
 import br.com.campo.clube.dto.AreaDadosExibicao;
 import br.com.campo.clube.model.Area;
+
 import br.com.campo.clube.repository.AreaRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,16 @@ public class AreaService {
     @Autowired
     private AreaRepository repository;
 
+    @Autowired
+    private AssociadoService associadoService;
+
     @Transactional
     public Area salvar( AreaDadosCadastro dados){
+
         Area area = new Area(dados);
         return repository.save(area);
     }
+
 
     public Optional<Area> buscarAreaPeloId(Long id){
         return repository.findById(id);
@@ -55,4 +61,6 @@ public class AreaService {
                 area.getId(), area.getNomeArea(), area.getTipoArea(),
                 area.getReservavel(), area.getQuantidade());
     }
+
+
 }

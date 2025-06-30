@@ -2,7 +2,7 @@ package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.*;
 import br.com.campo.clube.model.Area;
-import br.com.campo.clube.model.Associado;
+
 import br.com.campo.clube.service.AreaService;
 import br.com.campo.clube.service.AssociadoService;
 import jakarta.validation.Valid;
@@ -101,4 +101,5 @@ public class AreaController {
 
         return ResponseEntity.ok().build();
     }
+
 }

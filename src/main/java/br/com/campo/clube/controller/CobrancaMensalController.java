@@ -1,6 +1,7 @@
 package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.*;
+import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.service.CobrancaMensalService;
 import jakarta.validation.Valid;
@@ -90,6 +91,7 @@ public class CobrancaMensalController {
 
         return ResponseEntity.ok().build();
     }
+
 
     private CobrancaMensalDadosExibicao toCobrancaMensalDadosExibicao(CobrancaMensal cobranca){
         return new CobrancaMensalDadosExibicao(

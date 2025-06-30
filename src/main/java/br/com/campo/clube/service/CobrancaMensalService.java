@@ -97,26 +97,4 @@ public class CobrancaMensalService {
                 cobranca.getPago());
     }
 
-    //Verifica a quantidade de meses de inadimplência
-    public Integer verificaQntInadimplencia(Associado associado){
-        //Busca as cobranças com paga == false e dtVencimento que ja passou, comparando com o dia de hoje, e retorna a quantidade de ocorrencias
-        List<CobrancaMensal> cobrancas = repository.findByAssociadoAndPago(associado, false);
-        if(cobrancas.isEmpty()){
-            //se a lista esta vazia significa que todas cobranças desse associado estão pagas
-            return 0;
-        }
-        int quantidade = 0;
-       for(CobrancaMensal cobranca : cobrancas) {
-           //Verifica se a data de vencimento já passou
-           if (cobranca.getDtVencimento().isBefore(LocalDate.now())) {
-               //se sim aumenta a quantidade de inadimplências
-                quantidade++;
-           }
-       }
-       //retorna a quantidade de inadimplências
-       return quantidade;
-
-    }
-
-
 }
