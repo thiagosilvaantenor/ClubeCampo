@@ -1,6 +1,8 @@
 package br.com.campo.clube.service;
 
 import br.com.campo.clube.dto.*;
+import br.com.campo.clube.exceptions.AssociadoException;
+import br.com.campo.clube.exceptions.ParametroInvalidoException;
 import br.com.campo.clube.model.*;
 import br.com.campo.clube.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +18,7 @@ public class TurmaService {
     @Autowired
     private TurmaRepository turmaRepository;
     @Autowired
-    private AssociadoRepository associadoRepository;
-    @Autowired
-    private ParticipanteTurmaAssociadoRepository turmaAssociadoRepository;
+    private AssociadoService associadoService;
 
     @Autowired
     private DependenteRepository dependenteRepository;
@@ -31,10 +31,14 @@ public class TurmaService {
     @Transactional
     public Turma criarTurma(TurmaCadastroDTO dados) {
         Turma turma = new Turma();
-        turma.setNomeTurma(dados.nomeTurma());
-        turma.setDtHorario(dados.dtHorario());
-        turma.setVagasDisponiveis(dados.vagasDisponiveis());
-        turma.setVagasEsgotadas(false);
+        try{
+            turma.setNomeTurma(dados.nomeTurma());
+            turma.setDtHorario(dados.dtHorario());
+            turma.setVagasDisponiveis(dados.vagasDisponiveis());
+            turma.setVagasEsgotadas(false);
+        }catch (ParametroInvalidoException e){
+            throw new ParametroInvalidoException("Não foi possivel cadastrar a turma" + e.getLocalizedMessage());
+        }
         return turmaRepository.save(turma);
     }
 
@@ -52,7 +56,7 @@ public class TurmaService {
     @Transactional
     public Turma atualizarTurma(Long id, TurmaAtualizacaoDTO dados) {
         Turma turma = turmaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Turma não encontrada!"));
+                .orElseThrow(() -> new ParametroInvalidoException("Turma não encontrada!"));
 
         if (dados.nomeTurma() != null && !dados.nomeTurma().isBlank()) {
             turma.setNomeTurma(dados.nomeTurma());
@@ -67,9 +71,10 @@ public class TurmaService {
     @Transactional
     public void excluirTurma(Long id) {
         Turma turma = turmaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Turma não encontrada!"));
+                .orElseThrow(() -> new ParametroInvalidoException("Turma não encontrada!"));
         if (!turma.getAssociados().isEmpty() || !turma.getDependentes().isEmpty()) {
-            throw new RuntimeException("Não é possível excluir turma com participantes inscritos. Cancele as inscrições primeiro.");
+            throw new ParametroInvalidoException
+                    ("Não é possível excluir turma com participantes inscritos. Cancele as inscrições primeiro.");
         }
         turmaRepository.delete(turma);
     }
@@ -78,12 +83,28 @@ public class TurmaService {
     @Transactional
     public ParticipanteTurmaAssociado inscreverAssociado(InscricaoAssociadoDTO dados) {
         Turma turma = getTurmaDisponivel(dados.turmaId());
-        Associado associado = associadoRepository.findById(dados.associadoId())
-                .orElseThrow(() -> new RuntimeException("Associado não encontrado!"));
+        Associado associado = associadoService.buscarPeloId(dados.associadoId())
+                .orElseThrow(() -> new AssociadoException("Associado não encontrado!"));
+        //Verifica se o associado tem inadimplências e pode participar da turma
+        verificaAssociado(associado, turma.getNomeTurma());
 
         ParticipanteTurmaAssociado inscricao = new ParticipanteTurmaAssociado(null, associado, turma);
         decrementarVaga(turma);
         return participanteTurmaAssociadoRepository.save(inscricao);
+    }
+
+    private void verificaAssociado(Associado associado, String nomeTurma) {
+        int qntInadimplencia = associadoService.verificaQntInadimplencia(associado);
+        //Se for maior ou igual a 4 não pode participar de turmas
+        if (qntInadimplencia >= 4){
+            throw new AssociadoException
+                    ("Associado está com inadimplência superior a 3 meses, por isso não pode se inscrever em uma Turma");
+        }
+        //Se for passio de haras não pode ter inadimplência maior ou igual a 2 meses
+        if (nomeTurma.equalsIgnoreCase("haras") && qntInadimplencia >= 2) {
+            throw new AssociadoException
+                    ("Associado tem inadimplência de pelo menos 2 meses por isso não pode participar de uma turma do haras");
+        }
     }
 
     //Insert ParticipanteDependente
@@ -92,7 +113,7 @@ public class TurmaService {
     public ParticipanteTurmaDependente inscreverDependente(InscricaoDependenteDTO dados) {
         Turma turma = getTurmaDisponivel(dados.turmaId());
         Dependente dependente = dependenteRepository.findById(dados.dependenteId())
-                .orElseThrow(() -> new RuntimeException("Dependente não encontrado!"));
+                .orElseThrow(() -> new ParametroInvalidoException("Dependente não encontrado!"));
 
         ParticipanteTurmaDependente inscricao = new ParticipanteTurmaDependente(null, dependente, turma);
         decrementarVaga(turma);
@@ -103,7 +124,7 @@ public class TurmaService {
     @Transactional
     public void cancelarInscricaoAssociado(Long idInscricao) {
         ParticipanteTurmaAssociado inscricao = participanteTurmaAssociadoRepository.findById(idInscricao)
-                .orElseThrow(() -> new RuntimeException("Inscrição de associado não encontrada!"));
+                .orElseThrow(() -> new ParametroInvalidoException("Inscrição de associado não encontrada!"));
 
         incrementarVaga(inscricao.getTurma());
         participanteTurmaAssociadoRepository.delete(inscricao);
@@ -112,7 +133,7 @@ public class TurmaService {
     @Transactional
     public void cancelarInscricaoDependente(Long idInscricao) {
         ParticipanteTurmaDependente inscricao = participanteTurmaDependenteRepository.findById(idInscricao)
-                .orElseThrow(() -> new RuntimeException("Inscrição de dependente não encontrada!"));
+                .orElseThrow(() -> new ParametroInvalidoException("Inscrição de dependente não encontrada!"));
 
         incrementarVaga(inscricao.getTurma());
         participanteTurmaDependenteRepository.delete(inscricao);
@@ -121,9 +142,9 @@ public class TurmaService {
     //Verifica se a turma existe e se tem vagas disponiveis
     private Turma getTurmaDisponivel(Long turmaId) {
         Turma turma = turmaRepository.findById(turmaId)
-                .orElseThrow(() -> new RuntimeException("Turma não encontrada!"));
+                .orElseThrow(() -> new ParametroInvalidoException("Turma não encontrada!"));
         if (turma.getVagasEsgotadas()) {
-            throw new RuntimeException("Vagas esgotadas para esta turma!");
+            throw new ParametroInvalidoException("Vagas esgotadas para esta turma!");
         }
         return turma;
     }

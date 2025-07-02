@@ -1,6 +1,7 @@
 package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.*;
+
 import br.com.campo.clube.model.ParticipanteTurmaAssociado;
 import br.com.campo.clube.model.ParticipanteTurmaDependente;
 import br.com.campo.clube.model.Turma;
@@ -26,8 +27,8 @@ public class TurmaController {
     public ResponseEntity<TurmaExibicaoDTO> criarTurma(@RequestBody @Valid TurmaCadastroDTO dados) {
         Turma turmaSalva = service.criarTurma(dados);
         //Converte a Turma em DTO
-        TurmaExibicaoDTO dto = toTurmaExibicaoDTO(turmaSalva);
         //Retorna 201 e o DTO no body
+        TurmaExibicaoDTO dto = toTurmaExibicaoDTO(turmaSalva);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -48,27 +49,28 @@ public class TurmaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TurmaExibicaoDTO> atualizarTurma(@PathVariable Long id, @RequestBody @Valid TurmaAtualizacaoDTO dados) {
-        Turma turmaAtualizada = service.atualizarTurma(id, dados);
-        return ResponseEntity.ok(toTurmaExibicaoDTO(turmaAtualizada));
+    public ResponseEntity<Object> atualizarTurma(@PathVariable @Valid Long id, @RequestBody @Valid TurmaAtualizacaoDTO dados) {
+            Turma turmaAtualizada = service.atualizarTurma(id, dados);
+            return ResponseEntity.ok(toTurmaExibicaoDTO(turmaAtualizada));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluirTurma(@PathVariable Long id) {
-        service.excluirTurma(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Object> excluirTurma(@PathVariable Long id) {
+            service.excluirTurma(id);
+            //Se deu tudo certo retorna 200 sem conteudo no body
+            return ResponseEntity.noContent().build();
     }
 
-    // --- Endpoints de Inscrição ---
+    // --- Endpoints de Participantes ---
 
     //INSERTS
-    @PostMapping("/inscrever-associado")
+    @PostMapping("/associado")
     public ResponseEntity<ParticipanteAssociadoExibicaoDTO> inscreverAssociado(@RequestBody @Valid InscricaoAssociadoDTO dados) {
         ParticipanteTurmaAssociado inscricao = service.inscreverAssociado(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(toParticipanteAssociadoExibicaoDTO(inscricao));
     }
 
-    @PostMapping("/inscrever-dependente")
+    @PostMapping("/dependente")
     public ResponseEntity<ParticipanteDependenteExibicaoDTO> inscreverDependente(@RequestBody @Valid InscricaoDependenteDTO dados) {
         ParticipanteTurmaDependente inscricao = service.inscreverDependente(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(toParticipanteDependenteExibicaoDTO(inscricao));
@@ -76,13 +78,13 @@ public class TurmaController {
 
     // --- Endpoints para Cancelar Inscrição ---
     //DELETES
-    @DeleteMapping("/inscricao-associado/{idInscricao}")
+    @DeleteMapping("/associado/{idInscricao}")
     public ResponseEntity<Void> cancelarInscricaoAssociado(@PathVariable Long idInscricao) {
         service.cancelarInscricaoAssociado(idInscricao);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/inscricao-dependente/{idInscricao}")
+    @DeleteMapping("/dependente/{idInscricao}")
     public ResponseEntity<Void> cancelarInscricaoDependente(@PathVariable Long idInscricao) {
         service.cancelarInscricaoDependente(idInscricao);
         return ResponseEntity.noContent().build();

@@ -1,6 +1,8 @@
 package br.com.campo.clube.service;
 
 import br.com.campo.clube.dto.*;
+import br.com.campo.clube.exceptions.AssociadoException;
+import br.com.campo.clube.exceptions.ParametroInvalidoException;
 import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.repository.CobrancaMensalRepository;
@@ -21,25 +23,31 @@ public class CobrancaMensalService {
     @Autowired
     private AssociadoService associadoService;
 
-    //TODO: VERIFICAR COMO FAZER O SISTEMA GERAR AUTOMATICAMENTE A COBRANÇa
+
     @Transactional
     public CobrancaMensal salvar(CobrancaMensalDadosCadastro novo) {
-        CobrancaMensal cobranca = new CobrancaMensal(novo);
-        //Busca o tipo pelo id
-        if(novo.associadoId() != null){
-            Optional<Associado> associado = associadoService.buscarPeloId(novo.associadoId());
-            if (associado.isPresent()){
-                Associado encontrado = associado.get();
-                cobranca.setAssociado(encontrado);
-                //Coloca o valor padrão de acordo com o tipoAssociado
-                cobranca.setValorPadrao(encontrado.getTipo().getValor());
-                //A multa vai ser verificada quando o pagamento for realizado, por enquanto o valor final é o base
-                cobranca.setValorFinal(cobranca.getValorPadrao());
-                cobranca.setPago(false);
-                return repository.save(cobranca);
+        CobrancaMensal cobranca = null;
+        try{
+            cobranca = new CobrancaMensal(novo);
+            //Busca o tipo pelo id
+            if(novo.associadoId() != null){
+                Optional<Associado> associado = associadoService.buscarPeloId(novo.associadoId());
+                if (associado.isPresent()){
+                    Associado encontrado = associado.get();
+                    cobranca.setAssociado(encontrado);
+                    //Coloca o valor padrão de acordo com o tipoAssociado
+                    cobranca.setValorPadrao(encontrado.getTipo().getValor());
+                    //A multa vai ser verificada quando o pagamento for realizado, por enquanto o valor final é o base
+                    cobranca.setValorFinal(cobranca.getValorPadrao());
+                    cobranca.setPago(false);
+                } else{
+                    throw new AssociadoException("Associado não encontrado");
+                }
             }
+        } catch (ParametroInvalidoException e){
+            throw new ParametroInvalidoException("Não foi possivel salvar a cobrança");
         }
-        return null;
+        return repository.save(cobranca);
 
     }
 
@@ -59,34 +67,40 @@ public class CobrancaMensalService {
     public CobrancaMensalDadosExibicao atualizar(CobrancaMensal cobranca, @Valid CobrancaMensalDadosAtualizacao dados) {
 
         //Associado
-        if (dados.associadoId() != null ){
-            Optional<Associado> associado = associadoService.buscarPeloId(dados.associadoId());
-            if (associado.isPresent()){
-                cobranca.setAssociado(associado.get());
+        try{
+            if (dados.associadoId() != null ){
+                Optional<Associado> associado = associadoService.buscarPeloId(dados.associadoId());
+                if (associado.isPresent()){
+                    cobranca.setAssociado(associado.get());
+                } else{
+                    throw new AssociadoException("associado não encontrado");
+                }
             }
-        }//TODO: Lançar exceção caso associado não esteja presente ou encontrado
 
-        //dtVencimento
-        if (dados.dtVencimento() != null) {
-            cobranca.setDtVencimento(dados.dtVencimento());
+            //dtVencimento
+            if (dados.dtVencimento() != null) {
+                cobranca.setDtVencimento(dados.dtVencimento());
+            }
+            //valorPadrao
+            if (dados.valorPadrao() != null){
+                cobranca.setValorPadrao(dados.valorPadrao());
+            }
+            //valorFinal
+            if (dados.valorFinal() != null ) {
+                cobranca.setValorFinal(dados.valorFinal());
+            }
+            //mesAno
+            if (dados.mesAno() != null){
+                cobranca.setMesAno(dados.mesAno());
+            }
+            //Pago
+            if (dados.pago() != null) {
+                cobranca.setPago(dados.pago());
+            }
+                repository.save(cobranca);
+        }catch (ParametroInvalidoException parametroInvalidoException){
+            throw new ParametroInvalidoException("Não foi possivel salvar a cobrança " + parametroInvalidoException.getMessage());
         }
-        //valorPadrao
-        if (dados.valorPadrao() != null){
-            cobranca.setValorPadrao(dados.valorPadrao());
-        }
-        //valorFinal
-        if (dados.valorFinal() != null ) {
-            cobranca.setValorFinal(dados.valorFinal());
-        }
-        //mesAno
-        if (dados.mesAno() != null){
-            cobranca.setMesAno(dados.mesAno());
-        }
-        //Pago
-        if (dados.pago() != null) {
-            cobranca.setPago(dados.pago());
-        }
-        repository.save(cobranca);
         return new CobrancaMensalDadosExibicao(
                 cobranca.getId(),
                 new AssociadoSimplesDTO(cobranca.getAssociado().getId(), cobranca.getAssociado().getNomeCompleto()),

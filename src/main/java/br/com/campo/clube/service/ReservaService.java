@@ -35,14 +35,24 @@ public class ReservaService {
         if (area.isPresent() && associado.isPresent()){
 
             //Verifica se associado tem inadimplências que podem impedir a reserva
-            lidaComInadimplencia(associado.get(), area.get());
+            try{
+
+                lidaComInadimplencia(associado.get(), area.get());
+            }catch (AssociadoException associadoException) {
+                throw new AssociadoException(associadoException.getMessage());
+            }
             //Se não tem inadimplências, cria o objeto e salva no banco de dados
             Reserva reserva = new Reserva(dados);
             reserva.setAssociado(associado.get());
             reserva.setArea(area.get());
-            //verifica se a reserva pode gerar conflito
-            verificarReservaNoMesmoDiaHoraArea(reserva);
+            try{
+                //verifica se a reserva pode gerar conflito
+                verificarReservaNoMesmoDiaHoraArea(reserva);
+            }catch (ReservaInvalidaException reservaException){
+                throw new ReservaInvalidaException(reservaException.getMessage());
+            }
             return repository.save(reserva);
+
         }
        throw new ReservaInvalidaException("Reserva não pode ser salva");
 
@@ -124,8 +134,7 @@ public class ReservaService {
                 }
             }
             if (qnt > 3) {
-                //Garante que a carteirinha está bloquada
-                associado.setCarteirinhaBloqueada(true);
+                //A carteirinha está bloquada
                 throw new AssociadoException("Associado tem inadimplência de " + qnt +
                         " meses e por isso está com a carterinha bloqueada");
             }

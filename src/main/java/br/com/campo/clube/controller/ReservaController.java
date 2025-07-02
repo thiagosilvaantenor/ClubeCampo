@@ -1,6 +1,8 @@
 package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.*;
+import br.com.campo.clube.exceptions.AssociadoException;
+import br.com.campo.clube.exceptions.ReservaInvalidaException;
 import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.model.Reserva;
 import br.com.campo.clube.service.ReservaService;
@@ -21,19 +23,11 @@ public class ReservaController {
 
     @PostMapping
     public ResponseEntity<Reserva> criarReserva(@RequestBody @Valid ReservaDadosCadastro dados) {
-
-        Reserva salvo = null;
-        if (dados != null) {
-            //Envia os dados do DTO para a service criar o Reserva e salvar
-            salvo = service.salvar(dados);
-        }
         //Se o service retornou um Reserva então deu tudo certo
-        if (salvo != null) {
-            //Retorna 201, CREATED com o reserva no body
-            return ResponseEntity.status(201).body(salvo);
-        }
-        //Se não retorna badRequest/400
-        return ResponseEntity.badRequest().build();
+          Reserva salvo = service.salvar(dados);
+        //Envia os dados do DTO para a service criar o Reserva e salvar
+        //Retorna 201, CREATED com o reserva no body
+        return ResponseEntity.status(201).body(salvo);
     }
 
     @GetMapping

@@ -23,12 +23,12 @@ public class CobrancaMensalController {
     public ResponseEntity<CobrancaMensalDadosExibicao> gerarCobranca(@RequestBody @Valid CobrancaMensalDadosCadastro dados){
         CobrancaMensal salvo = null;
         if (dados != null) {
-            //Envia os dados do DTO para a service criar o Associado e salvar
+            //Envia os dados do DTO para a service criar a Cobrança e salvar
             salvo = service.salvar(dados);
         }
-        //Se o service retornou um Associado então deu tudo certo
+        //Se o service retornou uma Cobrança então deu tudo certo
         if (salvo != null) {
-            //Retorna 201, CREATED com o associado no body
+            //Retorna 201, CREATED com o cobrança no body
 
             return ResponseEntity.status(201).body(toCobrancaMensalDadosExibicao(salvo));
         }

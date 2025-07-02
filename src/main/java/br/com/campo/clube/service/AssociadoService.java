@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.repository.AssociadoRepository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AssociadoService {
@@ -38,7 +40,8 @@ public class AssociadoService {
 			associado.setTipo(tipo);
 			tipo.getAssociados().add(associado);
 		}
-        return repository.save(associado);
+		associado.setCarteirinhaBloqueada(false);
+		return repository.save(associado);
 	}
 	
 	public List<Associado> buscarTodos(){
@@ -54,6 +57,7 @@ public class AssociadoService {
 		repository.delete(encontrado);
     }
 
+	@Transactional
 	public AssociadoDadosExibicao atualizar(Associado associado, @Valid AssociadoDadosAtualizacao dados) {
 
 		if (dados.nomeCompleto() != null && !dados.nomeCompleto().isBlank()){
@@ -104,6 +108,8 @@ public class AssociadoService {
 			associado.setTelefoneResidencial(dados.telefoneResidencial());
 		}
 
+		repository.save(associado);
+
 		return new AssociadoDadosExibicao(
 				associado.getId(),
 				associado.getNomeCompleto(),
@@ -126,6 +132,8 @@ public class AssociadoService {
 				associado.getEstado());
 	}
 
+	//É necessário a propagation para criar uma transação deste método, já que ele vai ser chamado em outras transações
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	//Verifica a quantidade de meses de inadimplência, o resultado vai ser tratado nas seguintes services: Reserva, Area e ParticipanteTurmaAssociado
 	public Integer verificaQntInadimplencia(Associado associado){
 		//Busca as cobranças com paga == false e dtVencimento que ja passou, comparando com o dia de hoje, e retorna a quantidade de ocorrencias
@@ -142,7 +150,14 @@ public class AssociadoService {
 				quantidade++;
 			}
 		}
+		//Se for maior ou igual a 5 a carteirinha do associado é bloqueada
+		if(quantidade >= 5){
+			associado.setCarteirinhaBloqueada(true);
+			System.out.println(associado.getCarteirinhaBloqueada());
+			repository.save(associado);
+		}
 		//retorna a quantidade de inadimplências
+		System.out.println(associado.getCarteirinhaBloqueada());
 		return quantidade;
 
 	}

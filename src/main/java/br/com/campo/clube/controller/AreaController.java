@@ -48,7 +48,7 @@ public class AreaController {
         //Itera sobre a lista de areas, para cada item cria um DTO com os dados desse associado
         areas.forEach( area -> {
             dtos.add(new AreaDadosExibicao(
-                    area.getId(), area.getNomeArea(), area.getTipoArea(),
+                    area.getId(), area.getNomeArea(),
                     area.getReservavel(), area.getQuantidade())
             );
         });
@@ -66,7 +66,7 @@ public class AreaController {
             //Se sim, pega o area e com os dados dele cria um DTO pra ser retornado com ok/200
             Area encontrado = area.get();
             return ResponseEntity.ok(new AreaDadosExibicao(
-                            encontrado.getId(), encontrado.getNomeArea(), encontrado.getTipoArea(),
+                            encontrado.getId(), encontrado.getNomeArea(),
                             encontrado.getReservavel(), encontrado.getQuantidade())
             );
         }

@@ -18,9 +18,6 @@ public class AreaService {
     @Autowired
     private AreaRepository repository;
 
-    @Autowired
-    private AssociadoService associadoService;
-
     @Transactional
     public Area salvar( AreaDadosCadastro dados){
 
@@ -46,9 +43,6 @@ public class AreaService {
         if (dados.nomeArea() != null && !dados.nomeArea().isBlank()){
             area.setNomeArea(dados.nomeArea());
         }
-        if (dados.tipoArea() != null) {
-            area.setTipoArea(dados.tipoArea());
-        }
         if (dados.quantidade() != null){
             area.setQuantidade(dados.quantidade());
         }
@@ -58,7 +52,7 @@ public class AreaService {
         repository.save(area);
 
         return new AreaDadosExibicao(
-                area.getId(), area.getNomeArea(), area.getTipoArea(),
+                area.getId(), area.getNomeArea(),
                 area.getReservavel(), area.getQuantidade());
     }
 

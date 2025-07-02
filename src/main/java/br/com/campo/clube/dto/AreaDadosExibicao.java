@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 public record AreaDadosExibicao(
         Long id,
         String nomeArea,
-        String tipoArea,
         Boolean reservavel,
         Integer quantidade
 ) {

@@ -1,6 +1,7 @@
 package br.com.campo.clube.service;
 
 import br.com.campo.clube.dto.*;
+import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.model.PagamentoRealizado;
 import br.com.campo.clube.repository.PagamentoRealizadoRepository;
@@ -21,7 +22,7 @@ public class PagamentoRealizadoService {
     @Autowired
     private CobrancaMensalService cobrancaService;
 
-    //TODO: VERIFICAR COMO FAZER O SISTEMA GERAR AUTOMATICAMENTE A COBRANCA
+
     @Transactional
     public PagamentoRealizado salvar(PagamentoRealizadoDadosCadastro novo) {
         PagamentoRealizado pagamento = new PagamentoRealizado(novo);
@@ -35,6 +36,9 @@ public class PagamentoRealizadoService {
                 //Com o pagamento realizado é possivel verificar se houve multa devido a atraso
                 calcularValorFinal(pagamento);
                 pagamento.getCobrancaMensal().setPago(true);
+                //Verifica se o associado tem carteirinha bloqueada
+                //Se sim, desbloqueia ela, já se tiver inadimplência, feito este pagamento será no maximo 3 meses
+                desbloqueioCarteirinha(encontrado.getAssociado());
                 return repository.save(pagamento);
             }
         }
@@ -111,5 +115,13 @@ public class PagamentoRealizadoService {
            //Soma o valor padrão com a multa
            cobranca.setValorFinal(cobranca.getValorPadrao().add(multa));
        }
+    }
+
+    //Desbloqueio de carterinha
+    private void desbloqueioCarteirinha(Associado associado){
+        //Usado equals para evitar NulPointer
+        if (Boolean.TRUE.equals(associado.getCarteirinhaBloqueada())){
+            associado.setCarteirinhaBloqueada(false);
+        }
     }
 }

@@ -24,12 +24,12 @@ public class PagamentoRealizadoController {
     public ResponseEntity<PagamentoRealizadoDadosExibicao> gerarPagamento(@RequestBody @Valid PagamentoRealizadoDadosCadastro dados){
         PagamentoRealizado salvo = null;
         if (dados != null) {
-            //Envia os dados do DTO para a service criar o Associado e salvar
+            //Envia os dados do DTO para a service criar o Pagamento e salvar
             salvo = service.salvar(dados);
         }
-        //Se o service retornou um Associado então deu tudo certo
+        //Se o service retornou um Pagamento então deu tudo certo
         if (salvo != null) {
-            //Retorna 201, CREATED com o associado no body
+            //Retorna 201, CREATED com o pagamento no body
             return ResponseEntity.status(201).body(toPagamentoRealizadoDadosExibicao(salvo));
         }
         //Se não retorna badRequest/400
