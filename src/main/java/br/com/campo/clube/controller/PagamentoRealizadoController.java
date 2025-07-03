@@ -1,6 +1,7 @@
 package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.*;
+import br.com.campo.clube.exceptions.ParametroInvalidoException;
 import br.com.campo.clube.model.PagamentoRealizado;
 import br.com.campo.clube.service.PagamentoRealizadoService;
 import jakarta.validation.Valid;
@@ -47,6 +48,19 @@ public class PagamentoRealizadoController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/associado/{id}")
+    public ResponseEntity<List<PagamentoRealizadoDadosExibicao>> exibirPagamentosAssociado(@PathVariable Long id){
+        //Busca as pagamento no banco de dados
+        List<PagamentoRealizado> pagamento = service.buscarPeloAssociado(id);
+
+        List<PagamentoRealizadoDadosExibicao> dtos = new ArrayList<>();
+
+        //Itera sobre a lista de pagamento, para cada item cria um DTO com os dados desse cobranca
+        pagamento.forEach(cobranca -> dtos.add(toPagamentoRealizadoDadosExibicao(cobranca)));
+        //Retorna 200 com os DTOS no body
+        return ResponseEntity.ok(dtos);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<PagamentoRealizadoDadosExibicao> exibirPagamento(@PathVariable Long id){
@@ -57,7 +71,10 @@ public class PagamentoRealizadoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> atualizarPagamento(@PathVariable Long id, @RequestBody @Valid PagamentoRealizadoDadosCadastro dados) {
+    public ResponseEntity<Object> atualizarPagamento(@PathVariable Long id, @RequestBody @Valid PagamentoRealizadoDadosAtualizacao dados) {
+        if (dados == null){
+            return ResponseEntity.badRequest().body("Sem dados para atualizar");
+        }
         //Busca o pagamento no banco de dados é retornado um Optional, validação feita na service
         PagamentoRealizado encontrado = service.buscarPeloId(id);
         PagamentoRealizadoDadosExibicao atualizado = service.atualizar(encontrado, dados);

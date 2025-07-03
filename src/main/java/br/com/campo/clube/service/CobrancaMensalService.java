@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class CobrancaMensalService {
@@ -55,6 +55,7 @@ public class CobrancaMensalService {
     public List<CobrancaMensal> buscarPeloAssociado(Long id) {
         return repository.findByAssociadoId(id);
     }
+
 
     @Transactional
     public void excluir(CobrancaMensal encontrado) {

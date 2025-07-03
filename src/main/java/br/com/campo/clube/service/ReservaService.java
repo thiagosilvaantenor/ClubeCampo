@@ -31,6 +31,11 @@ public class ReservaService {
     @Transactional
     public Reserva salvar(ReservaDadosCadastro dados){
         Area area = areaService.buscarAreaPeloId(dados.areaId());
+        //verifica se a área escolhida é reservavel
+        if(Boolean.FALSE.equals(area.getReservavel())){
+            throw new ParametroInvalidoException("Area de id: " + dados.areaId() + ", não é reservavel");
+        }
+
         Associado associado = associadoService.buscarPeloId(dados.associadoId());
 
         //Verifica se associado tem inadimplências que podem impedir a reserva
@@ -60,6 +65,10 @@ public class ReservaService {
 
         if (dados.areaId() != null){
             Area area = areaService.buscarAreaPeloId(dados.areaId());
+            //verifica se a área escolhida é reservavel
+            if(Boolean.FALSE.equals(area.getReservavel())){
+                throw new ParametroInvalidoException("Area de id: " + dados.areaId() + ", não é reservavel");
+            }
             reserva.setArea(area);
             //verifica inadimplência
             lidaComInadimplencia(reserva.getAssociado(), area);

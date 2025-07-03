@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PagamentoRealizadoService {
@@ -48,12 +47,19 @@ public class PagamentoRealizadoService {
         }
         return pagamento;
     }
-
+    //Busca todos os pagamentos cadastrados
     @Transactional(readOnly = true)
     public List<PagamentoRealizado> buscarTodos(){
         return repository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public List<PagamentoRealizado> buscarPeloAssociado(Long id){
+        return repository.findByCobrancaMensalAssociadoId(id);
+    }
+
+
+    //Busca pelo id especifico
     @Transactional(readOnly = true)
     public PagamentoRealizado buscarPeloId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ParametroInvalidoException("Nenhum pagamento encontrado com o id: " + id));
@@ -67,7 +73,7 @@ public class PagamentoRealizadoService {
     }
 
     @Transactional
-    public PagamentoRealizadoDadosExibicao atualizar(PagamentoRealizado pagamento, @Valid PagamentoRealizadoDadosCadastro dados) {
+    public PagamentoRealizadoDadosExibicao atualizar(PagamentoRealizado pagamento, PagamentoRealizadoDadosAtualizacao dados) {
 
         //Cobrança
         if (dados.cobrancaId() != null ){

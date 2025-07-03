@@ -2,7 +2,6 @@ package br.com.campo.clube.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import br.com.campo.clube.dto.AssociadoDadosAtualizacao;
 import br.com.campo.clube.dto.AssociadoDadosCadastro;
@@ -13,7 +12,6 @@ import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.model.TipoAssociado;
 import br.com.campo.clube.repository.CobrancaMensalRepository;
 import br.com.campo.clube.repository.ParticipanteTurmaAssociadoRepository;
-import br.com.campo.clube.repository.TipoAssociadoRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,7 @@ public class AssociadoService {
 	private AssociadoRepository repository;
 
 	@Autowired
-	private TipoAssociadoRepository tipoRepository;
+	private TipoAssociadoService tipoService;
 
 	@Autowired
 	private CobrancaMensalRepository cobrancaRepository;
@@ -42,20 +40,15 @@ public class AssociadoService {
 
 	@Transactional
 	public Associado salvar(AssociadoDadosCadastro novo) {
-		Associado associado = new Associado(novo);
-		try{
-			//Busca o tipo pelo id
-			if(novo.tipoId() != null){
-				TipoAssociado tipo = tipoRepository.getReferenceById(novo.tipoId());
-				associado.setTipo(tipo);
-				tipo.getAssociados().add(associado);
-			} else{
-				throw new AssociadoException("Tipo Id não foi encontrado");
-			}
-			associado.setCarteirinhaBloqueada(false);
-		}catch (AssociadoException e){
-			throw new AssociadoException(e.getMessage());
+		if(novo.tipoId() == null) {
+			throw new AssociadoException("O tipoId do associado não pode ser null ou em branco");
 		}
+		Associado associado = new Associado(novo);
+		//Busca o tipo pelo id
+		TipoAssociado tipo = tipoService.buscarTipoAssociadoPorId(novo.tipoId());
+		associado.setTipo(tipo);
+		tipo.getAssociados().add(associado);
+		associado.setCarteirinhaBloqueada(false);
 		return repository.save(associado);
 	}
 	@Transactional(readOnly = true)
@@ -95,18 +88,13 @@ public class AssociadoService {
 			associado.setRg(dados.rg());
 		}
 		if (dados.tipoId() != null ) {
-
-			TipoAssociado tipo = tipoRepository.getReferenceById(dados.tipoId());
-			if (tipo != null){
-				//Remove o associado da lista que esta em tipo (antigo)
-				associado.getTipo().getAssociados().remove(associado);
-				//Coloca novo tipo
-				associado.setTipo(tipo);
-				//Add associado ao novo tipo
-				tipo.getAssociados().add(associado);
-			} else {
-				throw new AssociadoException("Tipo Associado não encontrado");
-			}
+			TipoAssociado tipo = tipoService.buscarTipoAssociadoPorId(dados.tipoId());
+			//Remove o associado da lista que esta em tipo (antigo)
+			associado.getTipo().getAssociados().remove(associado);
+			//Coloca novo tipo
+			associado.setTipo(tipo);
+			//Add associado ao novo tipo
+			tipo.getAssociados().add(associado);
 		}
 		if (dados.cep() != null && !dados.cep().isBlank()){
 			associado.setCep(dados.cep());
