@@ -100,6 +100,7 @@ As trilhas duram 1 hora e meia cada, com turmas de no máximo 30 pessoas, agenda
 ### Dependente
 
 - **GET**
+  - `/dependente` → retorna todos os dependentes cadastrados
   - `/dependente/associado/{id}` → retorna todos os dependentes do associado do ID informado
   - `/dependente/{id}` → retorna o dependente do ID informado
 - **POST**
@@ -146,6 +147,7 @@ As trilhas duram 1 hora e meia cada, com turmas de no máximo 30 pessoas, agenda
 - **GET**
   - `/cobranca` → retorna todas as cobranças
   - `/cobranca/{id}` → retorna a cobrança do ID informado
+  - `/cobranca/associado/{id}` → retorna as cobranças do associado que tenha o ID informado
 - **POST**
   - `/cobranca` → `{ long associadoId, string("dd-MM-yyyy") dtVencimento, string("MM-yyyy") mesAno }`
 - **PUT**
@@ -161,6 +163,7 @@ As trilhas duram 1 hora e meia cada, com turmas de no máximo 30 pessoas, agenda
 - **GET**
   - `/pagamento` → retorna todos os pagamentos
   - `/pagamento/{id}` → retorna o pagamento do ID informado
+  - `/pagamento/associado/{id}` → retorna os pagamentos do associado que tenha o ID informado
 - **POST**
   - `/pagamento` → `{ string(pattern = "dd-MM-yyyy") dtPagamento, string formaPagamento, long cobrancaId }`
 - **PUT**
