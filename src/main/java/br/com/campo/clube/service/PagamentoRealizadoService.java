@@ -1,6 +1,7 @@
 package br.com.campo.clube.service;
 
 import br.com.campo.clube.dto.*;
+import br.com.campo.clube.exceptions.ParametroInvalidoException;
 import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.model.PagamentoRealizado;
@@ -24,37 +25,41 @@ public class PagamentoRealizadoService {
 
 
     @Transactional
-    public PagamentoRealizado salvar(PagamentoRealizadoDadosCadastro novo) {
-        PagamentoRealizado pagamento = new PagamentoRealizado(novo);
-        //Busca a cobrança do pagamento pelo id
-        if(novo.cobrancaId() != null){
-            Optional<CobrancaMensal> cobranca = cobrancaService.buscarPeloId(novo.cobrancaId());
-            if (cobranca.isPresent()){
-                CobrancaMensal encontrado = cobranca.get();
-                //Coloca a cobrança
-                pagamento.setCobrancaMensal(encontrado);
-                //Com o pagamento realizado é possivel verificar se houve multa devido a atraso
-                calcularValorFinal(pagamento);
-                pagamento.getCobrancaMensal().setPago(true);
-                //Verifica se o associado tem carteirinha bloqueada
-                //Se sim, desbloqueia ela, já se tiver inadimplência, feito este pagamento será no maximo 3 meses
-                desbloqueioCarteirinha(encontrado.getAssociado());
-                return repository.save(pagamento);
-            }
+    public PagamentoRealizado salvar(@Valid PagamentoRealizadoDadosCadastro novo) {
+        if(novo.cobrancaId() == null) {
+            throw new ParametroInvalidoException("CobrancaId não pode estar vazio");
         }
-        //Sem cobrança não se pode salvar pagamentoRealizado
-        return null;
-
+        PagamentoRealizado pagamento = null;
+        try{
+            pagamento = new PagamentoRealizado(novo);
+            //Busca a cobrança do pagamento pelo id, validação pelo service
+            CobrancaMensal encontrado = cobrancaService.buscarPeloId(novo.cobrancaId());
+            //Coloca a cobrança
+            pagamento.setCobrancaMensal(encontrado);
+            //Com o pagamento realizado é possivel verificar se houve multa devido a atraso
+            calcularValorFinal(pagamento);
+            pagamento.getCobrancaMensal().setPago(true);
+            //Verifica se o associado tem carteirinha bloqueada
+            //Se sim, desbloqueia ela, já se tiver inadimplência, feito este pagamento será no maximo 3 meses
+            desbloqueioCarteirinha(encontrado.getAssociado());
+            repository.save(pagamento);
+        }catch (ParametroInvalidoException e){
+            throw new ParametroInvalidoException("Não foi possivel criar o Pagamento");
+        }
+        return pagamento;
     }
 
+    @Transactional(readOnly = true)
     public List<PagamentoRealizado> buscarTodos(){
         return repository.findAll();
     }
 
-    public Optional<PagamentoRealizado> buscarPeloId(Long id) {
-        return repository.findById(id);
+    @Transactional(readOnly = true)
+    public PagamentoRealizado buscarPeloId(Long id) {
+        return repository.findById(id).orElseThrow(() -> new ParametroInvalidoException("Nenhum pagamento encontrado com o id: " + id));
     }
 
+    @Transactional
     public void excluir(PagamentoRealizado encontrado) {
         //Sem pagamento no sistema, então deve ser marcado como não pago
         encontrado.getCobrancaMensal().setPago(false);
@@ -66,13 +71,8 @@ public class PagamentoRealizadoService {
 
         //Cobrança
         if (dados.cobrancaId() != null ){
-            Optional<CobrancaMensal> cobranca = cobrancaService.buscarPeloId(dados.cobrancaId());
-            if (cobranca.isPresent()){
-                pagamento.setCobrancaMensal(cobranca.get());
-            }else{
-                //Se não achar a cobrança não pode continuar
-                return null;
-            }
+            CobrancaMensal cobranca = cobrancaService.buscarPeloId(dados.cobrancaId());
+            pagamento.setCobrancaMensal(cobranca);
         }
 
         //dtPagamento

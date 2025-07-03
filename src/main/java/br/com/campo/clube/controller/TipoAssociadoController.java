@@ -29,8 +29,7 @@ public class TipoAssociadoController {
     public ResponseEntity<Object> cadastrarTipo(@RequestBody @Valid TipoAssociadoDTO dados){
         if (dados != null){
             TipoAssociado salvo = service.salvar(dados);
-            if (salvo != null)
-                return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
         }
         //Se dados nulo ou problema ao salvar retorna 400
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -45,28 +44,18 @@ public class TipoAssociadoController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<Object> exibirTipoAssocido(@PathVariable Long id){
-        Optional<TipoAssociado> tipo = service.buscarTipoAssociadoPorId(id);
-        if(tipo != null){
-            TipoAssociado encontrado = tipo.get();
-            return ResponseEntity.status(HttpStatus.OK).body(new TipoAssociadoDadosExibicao(
-                    encontrado.getId(),
-                    encontrado.getNome(),
-                    encontrado.getValor()));
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        TipoAssociado encontrado = service.buscarTipoAssociadoPorId(id);
+        return ResponseEntity.status(HttpStatus.OK).body(new TipoAssociadoDadosExibicao(
+                encontrado.getId(),
+                encontrado.getNome(),
+                encontrado.getValor()));
     }
 
     //UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<Object> atualizarTipoAssociado(@PathVariable Long id, @RequestBody TipoAssociadoDTO dados) {
-        //Busca o associado no banco de dados é retornado um Optional
-        Optional<TipoAssociado> tipoAssociado = service.buscarTipoAssociadoPorId(id);
-
-        //Caso não encontre o associado retorna
-        if (tipoAssociado.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum associado");
-        }
-        TipoAssociado encontrado = tipoAssociado.get();
+        //Busca o associado no banco de dados é retornado um Optional, validação feita na service
+        TipoAssociado encontrado = service.buscarTipoAssociadoPorId(id);
         TipoAssociadoDadosExibicao atualizado = service.atualizar(encontrado, dados);
         return ResponseEntity.ok(atualizado);
     }
@@ -75,14 +64,8 @@ public class TipoAssociadoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> excluir(@PathVariable Long id){
         //Busca o area no banco de dados é retornado um Optional
-        Optional<TipoAssociado> area = service.buscarTipoAssociadoPorId(id);
-        //Caso não encontre o area retorna 404
-        if (area.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum area");
-        }
-        TipoAssociado encontrado = area.get();
+        TipoAssociado encontrado = service.buscarTipoAssociadoPorId(id);
         service.excluir(encontrado);
-
         return ResponseEntity.ok().build();
     }
 

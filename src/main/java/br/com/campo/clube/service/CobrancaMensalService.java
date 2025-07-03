@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,40 +24,39 @@ public class CobrancaMensalService {
 
 
     @Transactional
-    public CobrancaMensal salvar(CobrancaMensalDadosCadastro novo) {
-        CobrancaMensal cobranca = null;
-        try{
-            cobranca = new CobrancaMensal(novo);
-            //Busca o tipo pelo id
-            if(novo.associadoId() != null){
-                Optional<Associado> associado = associadoService.buscarPeloId(novo.associadoId());
-                if (associado.isPresent()){
-                    Associado encontrado = associado.get();
-                    cobranca.setAssociado(encontrado);
-                    //Coloca o valor padrão de acordo com o tipoAssociado
-                    cobranca.setValorPadrao(encontrado.getTipo().getValor());
-                    //A multa vai ser verificada quando o pagamento for realizado, por enquanto o valor final é o base
-                    cobranca.setValorFinal(cobranca.getValorPadrao());
-                    cobranca.setPago(false);
-                } else{
-                    throw new AssociadoException("Associado não encontrado");
-                }
-            }
-        } catch (ParametroInvalidoException e){
-            throw new ParametroInvalidoException("Não foi possivel salvar a cobrança");
+    public CobrancaMensal salvar(@Valid CobrancaMensalDadosCadastro novo) {
+        if (novo.associadoId() == null) {
+            throw new AssociadoException("AssociadoId não pode estar nullo");
         }
+        CobrancaMensal cobranca = new CobrancaMensal(novo);
+        //Busca o tipo pelo id, validação feita no service
+        Associado encontrado = associadoService.buscarPeloId(novo.associadoId());
+        cobranca.setAssociado(encontrado);
+        //Coloca o valor padrão de acordo com o tipoAssociado
+        cobranca.setValorPadrao(encontrado.getTipo().getValor());
+        //A multa vai ser verificada quando o pagamento for realizado, por enquanto o valor final é o base
+        cobranca.setValorFinal(cobranca.getValorPadrao());
+        cobranca.setPago(false);
         return repository.save(cobranca);
-
     }
 
+    @Transactional(readOnly = true)
     public List<CobrancaMensal> buscarTodos(){
         return repository.findAll();
     }
 
-    public Optional<CobrancaMensal> buscarPeloId(Long id) {
-        return repository.findById(id);
+    @Transactional(readOnly = true)
+    public CobrancaMensal buscarPeloId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ParametroInvalidoException("Nenhuma Cobrança encontrada com este id: " + id));
     }
 
+    @Transactional(readOnly = true)
+    public List<CobrancaMensal> buscarPeloAssociado(Long id) {
+        return repository.findByAssociadoId(id);
+    }
+
+    @Transactional
     public void excluir(CobrancaMensal encontrado) {
         repository.delete(encontrado);
     }
@@ -69,12 +67,8 @@ public class CobrancaMensalService {
         //Associado
         try{
             if (dados.associadoId() != null ){
-                Optional<Associado> associado = associadoService.buscarPeloId(dados.associadoId());
-                if (associado.isPresent()){
-                    cobranca.setAssociado(associado.get());
-                } else{
-                    throw new AssociadoException("associado não encontrado");
-                }
+                Associado associado = associadoService.buscarPeloId(dados.associadoId());
+                cobranca.setAssociado(associado);
             }
 
             //dtVencimento
@@ -97,7 +91,7 @@ public class CobrancaMensalService {
             if (dados.pago() != null) {
                 cobranca.setPago(dados.pago());
             }
-                repository.save(cobranca);
+            repository.save(cobranca);
         }catch (ParametroInvalidoException parametroInvalidoException){
             throw new ParametroInvalidoException("Não foi possivel salvar a cobrança " + parametroInvalidoException.getMessage());
         }

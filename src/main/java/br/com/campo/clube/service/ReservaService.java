@@ -3,6 +3,7 @@ package br.com.campo.clube.service;
 import br.com.campo.clube.dto.ReservaDadosCadastro;
 import br.com.campo.clube.dto.ReservaDadosExibicao;
 import br.com.campo.clube.exceptions.AssociadoException;
+import br.com.campo.clube.exceptions.ParametroInvalidoException;
 import br.com.campo.clube.exceptions.ReservaInvalidaException;
 import br.com.campo.clube.model.Area;
 import br.com.campo.clube.model.Associado;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class ReservaService {
@@ -29,38 +30,25 @@ public class ReservaService {
 
     @Transactional
     public Reserva salvar(ReservaDadosCadastro dados){
+        Area area = areaService.buscarAreaPeloId(dados.areaId());
+        Associado associado = associadoService.buscarPeloId(dados.associadoId());
 
-        Optional<Area> area = areaService.buscarAreaPeloId(dados.areaId());
-        Optional<Associado> associado = associadoService.buscarPeloId(dados.associadoId());
-        if (area.isPresent() && associado.isPresent()){
-
-            //Verifica se associado tem inadimplências que podem impedir a reserva
-            try{
-
-                lidaComInadimplencia(associado.get(), area.get());
-            }catch (AssociadoException associadoException) {
-                throw new AssociadoException(associadoException.getMessage());
-            }
-            //Se não tem inadimplências, cria o objeto e salva no banco de dados
-            Reserva reserva = new Reserva(dados);
-            reserva.setAssociado(associado.get());
-            reserva.setArea(area.get());
-            try{
-                //verifica se a reserva pode gerar conflito
-                verificarReservaNoMesmoDiaHoraArea(reserva);
-            }catch (ReservaInvalidaException reservaException){
-                throw new ReservaInvalidaException(reservaException.getMessage());
-            }
-            return repository.save(reserva);
-
-        }
-       throw new ReservaInvalidaException("Reserva não pode ser salva");
-
+        //Verifica se associado tem inadimplências que podem impedir a reserva
+        lidaComInadimplencia(associado, area);
+        //Se não tem inadimplências, cria o objeto e salva no banco de dados
+        Reserva reserva = new Reserva(dados);
+        reserva.setAssociado(associado);
+        reserva.setArea(area);
+        //verifica se a reserva pode gerar conflito
+        verificarReservaNoMesmoDiaHoraArea(reserva);
+        repository.save(reserva);
+        return reserva;
     }
 
 
-    public Optional<Reserva> buscarReservaPeloId(Long id){
-        return repository.findById(id);
+    public Reserva buscarReservaPeloId(Long id){
+        return repository.findById(id)
+                .orElseThrow(() -> new ParametroInvalidoException("Nenhuma reserva encontrada com este id: " + id));
     }
 
     public List<Reserva> buscarTodos(){
@@ -71,20 +59,17 @@ public class ReservaService {
     public ReservaDadosExibicao atualizar(Reserva reserva, @Valid ReservaDadosCadastro dados) {
 
         if (dados.areaId() != null){
-            Optional<Area> area = areaService.buscarAreaPeloId(dados.areaId());
-            if (area.isPresent()){
-                reserva.setArea(area.get());
-                lidaComInadimplencia(reserva.getAssociado(), area.get());
-                verificarReservaNoMesmoDiaHoraArea(reserva);
-
-            }
+            Area area = areaService.buscarAreaPeloId(dados.areaId());
+            reserva.setArea(area);
+            //verifica inadimplência
+            lidaComInadimplencia(reserva.getAssociado(), area);
+            //verifica conflito de reservas
+            verificarReservaNoMesmoDiaHoraArea(reserva);
         }
         if (dados.associadoId() != null) {
-            Optional<Associado> associado = associadoService.buscarPeloId(dados.associadoId());
-            if (associado.isPresent()){
-                reserva.setAssociado(associado.get());
-                lidaComInadimplencia(associado.get(), reserva.getArea());
-            }
+            Associado associado = associadoService.buscarPeloId(dados.associadoId());
+            reserva.setAssociado(associado);
+            lidaComInadimplencia(associado, reserva.getArea());
         }
         if (dados.dtReservaInicio() != null){
             reserva.setDtReservaInicio(dados.dtReservaInicio());

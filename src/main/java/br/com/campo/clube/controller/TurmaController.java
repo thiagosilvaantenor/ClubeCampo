@@ -32,20 +32,19 @@ public class TurmaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    //Lista todas as turmas
     @GetMapping
     public ResponseEntity<List<TurmaExibicaoDTO>> listarTurmas() {
         List<Turma> turmas = service.listarTodas();
         List<TurmaExibicaoDTO> dtos = turmas.stream()
-                .map(this::toTurmaExibicaoDTO)
-                .collect(Collectors.toList());
+                .map(this::toTurmaExibicaoDTO).toList();
         return ResponseEntity.ok(dtos);
     }
-
+    //Exibe a turma de id especifico
     @GetMapping("/{id}")
     public ResponseEntity<TurmaExibicaoDTO> exibirTurma(@PathVariable Long id) {
-        return service.buscarPeloId(id)
-                .map(turma -> ResponseEntity.ok(toTurmaExibicaoDTO(turma)))
-                .orElse(ResponseEntity.notFound().build());
+      Turma turma = service.buscarPeloId(id);
+      return ResponseEntity.ok(toTurmaExibicaoDTO(turma));
     }
 
     @PutMapping("/{id}")
@@ -98,8 +97,8 @@ public class TurmaController {
                 turma.getDtHorario(),
                 turma.getVagasDisponiveis(),
                 turma.getVagasEsgotadas(),
-                turma.getAssociados().stream().map(this::toParticipanteAssociadoExibicaoDTO).collect(Collectors.toList()),
-                turma.getDependentes().stream().map(this::toParticipanteDependenteExibicaoDTO).collect(Collectors.toList())
+                turma.getAssociados().stream().map(this::toParticipanteAssociadoExibicaoDTO).toList(),
+                turma.getDependentes().stream().map(this::toParticipanteDependenteExibicaoDTO).toList()
         );
     }
 

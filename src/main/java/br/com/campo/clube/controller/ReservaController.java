@@ -1,9 +1,6 @@
 package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.*;
-import br.com.campo.clube.exceptions.AssociadoException;
-import br.com.campo.clube.exceptions.ReservaInvalidaException;
-import br.com.campo.clube.model.Associado;
 import br.com.campo.clube.model.Reserva;
 import br.com.campo.clube.service.ReservaService;
 import jakarta.validation.Valid;
@@ -13,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/reserva")
@@ -48,31 +44,19 @@ public class ReservaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ReservaDadosExibicao> exibirReserva(@PathVariable Long id){
-        //Busca o associado no banco de dados é retornado um Optional
-        Optional<Reserva> reserva = service.buscarReservaPeloId(id);
+        //Busca o associado no banco de dados é retornado um Optional, a validação é feita no service
+        Reserva encontrado = service.buscarReservaPeloId(id);
 
-        //Verifica se no Optional contém o associado
-        if (reserva.isPresent()) {
-            //Se sim, pega o associado e com os dados dele cria um DTO pra ser retornado com ok/200
-            Reserva encontrado = reserva.get();
-            return ResponseEntity.ok(new ReservaDadosExibicao(encontrado.getId(),
-                    encontrado.getArea(), encontrado.getAssociado(), encontrado.getDtReservaInicio(),
-                    encontrado.getDtReservaFim(), encontrado.getStatusReserva())
-            );
-        }
-        //Caso o Optional não contenha um associado, retorna not found/404
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(new ReservaDadosExibicao(encontrado.getId(),
+                encontrado.getArea(), encontrado.getAssociado(), encontrado.getDtReservaInicio(),
+                encontrado.getDtReservaFim(), encontrado.getStatusReserva())
+        );
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Object> atualizarReserva(@PathVariable Long id, @RequestBody ReservaDadosCadastro dados) {
-        //Busca o Reserva no banco de dados é retornado um Optional
-        Optional<Reserva> reserva = service.buscarReservaPeloId(id);
-        //Caso não encontre o Reserva retorna
-        if (reserva.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum Reserva");
-        }
-        Reserva encontrado = reserva.get();
+        //Busca o Reserva no banco de dados é retornado um Optional, validação feita no service
+        Reserva encontrado = service.buscarReservaPeloId(id);
         ReservaDadosExibicao atualizado = service.atualizar(encontrado,dados);
         return ResponseEntity.ok(atualizado);
     }
@@ -80,15 +64,9 @@ public class ReservaController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> excluir(@PathVariable Long id){
-        //Busca o Reserva no banco de dados é retornado um Optional
-        Optional<Reserva> reserva = service.buscarReservaPeloId(id);
-        //Caso não encontre o Reserva retorna 404
-        if (reserva.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhuma Reserva");
-        }
-        Reserva encontrado = reserva.get();
+        //Busca o Reserva no banco de dados é retornado um Optional, validação feita no service
+        Reserva encontrado = service.buscarReservaPeloId(id);
         service.excluir(encontrado);
-
         return ResponseEntity.ok().build();
     }
 }

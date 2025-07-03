@@ -21,7 +21,7 @@ public class TurmaService {
     private AssociadoService associadoService;
 
     @Autowired
-    private DependenteRepository dependenteRepository;
+    private DependenteService dependenteRepository;
     @Autowired
     private ParticipanteTurmaAssociadoRepository participanteTurmaAssociadoRepository;
     @Autowired
@@ -49,8 +49,9 @@ public class TurmaService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Turma> buscarPeloId(Long id) {
-        return turmaRepository.findById(id);
+    public Turma buscarPeloId(Long id) {
+        return turmaRepository.findById(id)
+                .orElseThrow(() -> new ParametroInvalidoException("Nenhuma Turma foi encontrada com este id: " + id));
     }
     //Update
     @Transactional
@@ -82,13 +83,15 @@ public class TurmaService {
 //Insert ParticipanteAssociado
     @Transactional
     public ParticipanteTurmaAssociado inscreverAssociado(InscricaoAssociadoDTO dados) {
+        //Verifica se a turma existe e tem vagas
         Turma turma = getTurmaDisponivel(dados.turmaId());
-        Associado associado = associadoService.buscarPeloId(dados.associadoId())
-                .orElseThrow(() -> new AssociadoException("Associado não encontrado!"));
+        //verifica se o associado existe e busca ele
+        Associado associado = associadoService.buscarPeloId(dados.associadoId());
         //Verifica se o associado tem inadimplências e pode participar da turma
         verificaAssociado(associado, turma.getNomeTurma());
-
+        //Cria a inscrição deste associado na turma, ele se torna participanteAssociado dela
         ParticipanteTurmaAssociado inscricao = new ParticipanteTurmaAssociado(null, associado, turma);
+        //Controla a quantidade de vagas
         decrementarVaga(turma);
         return participanteTurmaAssociadoRepository.save(inscricao);
     }
@@ -98,12 +101,12 @@ public class TurmaService {
         //Se for maior ou igual a 4 não pode participar de turmas
         if (qntInadimplencia >= 4){
             throw new AssociadoException
-                    ("Associado está com inadimplência superior a 3 meses, por isso não pode se inscrever em uma Turma");
+            ("Associado está com inadimplência superior a 3 meses, por isso ele e seus dependentes não podem se inscrever em uma Turma");
         }
-        //Se for passio de haras não pode ter inadimplência maior ou igual a 2 meses
+        //Se for passeio de haras não pode ter inadimplência maior ou igual a 2 meses
         if (nomeTurma.equalsIgnoreCase("haras") && qntInadimplencia >= 2) {
             throw new AssociadoException
-                    ("Associado tem inadimplência de pelo menos 2 meses por isso não pode participar de uma turma do haras");
+            ("Associado tem inadimplência de pelo menos 2 meses por isso ele e seus dependentes não podem participar de uma turma do haras");
         }
     }
 
@@ -112,9 +115,9 @@ public class TurmaService {
     @Transactional
     public ParticipanteTurmaDependente inscreverDependente(InscricaoDependenteDTO dados) {
         Turma turma = getTurmaDisponivel(dados.turmaId());
-        Dependente dependente = dependenteRepository.findById(dados.dependenteId())
-                .orElseThrow(() -> new ParametroInvalidoException("Dependente não encontrado!"));
-
+        Dependente dependente = dependenteRepository.buscarPeloId(dados.dependenteId());
+        //Verifica se o associado, responsavel pelo dependente tem inadimplências
+        verificaAssociado(dependente.getAssociado(), turma.getNomeTurma());
         ParticipanteTurmaDependente inscricao = new ParticipanteTurmaDependente(null, dependente, turma);
         decrementarVaga(turma);
         return participanteTurmaDependenteRepository.save(inscricao);
@@ -123,18 +126,20 @@ public class TurmaService {
     //Delete de Participantes
     @Transactional
     public void cancelarInscricaoAssociado(Long idInscricao) {
+        //Procura a inscrição do id informado
         ParticipanteTurmaAssociado inscricao = participanteTurmaAssociadoRepository.findById(idInscricao)
                 .orElseThrow(() -> new ParametroInvalidoException("Inscrição de associado não encontrada!"));
-
+        //Controle de vagas da turma
         incrementarVaga(inscricao.getTurma());
         participanteTurmaAssociadoRepository.delete(inscricao);
     }
 
     @Transactional
     public void cancelarInscricaoDependente(Long idInscricao) {
+        //Procura a inscrição do id informado
         ParticipanteTurmaDependente inscricao = participanteTurmaDependenteRepository.findById(idInscricao)
                 .orElseThrow(() -> new ParametroInvalidoException("Inscrição de dependente não encontrada!"));
-
+        //Controle de vagas da turma
         incrementarVaga(inscricao.getTurma());
         participanteTurmaDependenteRepository.delete(inscricao);
     }
@@ -143,7 +148,7 @@ public class TurmaService {
     private Turma getTurmaDisponivel(Long turmaId) {
         Turma turma = turmaRepository.findById(turmaId)
                 .orElseThrow(() -> new ParametroInvalidoException("Turma não encontrada!"));
-        if (turma.getVagasEsgotadas()) {
+        if (Boolean.TRUE.equals(turma.getVagasEsgotadas())) {
             throw new ParametroInvalidoException("Vagas esgotadas para esta turma!");
         }
         return turma;

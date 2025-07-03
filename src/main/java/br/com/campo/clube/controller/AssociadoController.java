@@ -2,7 +2,6 @@ package br.com.campo.clube.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import br.com.campo.clube.dto.*;
 import jakarta.validation.Valid;
@@ -55,28 +54,15 @@ public class AssociadoController {
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<AssociadoDadosExibicao> exibirAssociado(@PathVariable Long id){
-		//Busca o associado no banco de dados é retornado um Optional
-		Optional<Associado> associado = service.buscarPeloId(id);
-		
-		 //Verifica se no Optional contém o associado
-		if (associado.isPresent()) {
-			 //Se sim, pega o associado e com os dados dele cria um DTO pra ser retornado com ok/200
-			Associado encontrado = associado.get();
-			return ResponseEntity.ok(toAssociadoDadosExibicao(encontrado));
-		}
-		 //Caso o Optional não contenha um associado, retorna not found/404
-		return ResponseEntity.notFound().build();
+		//Busca o associado no banco de dados é retornado um Optional, validação feita na service
+		Associado encontrado = service.buscarPeloId(id);
+		return ResponseEntity.ok(toAssociadoDadosExibicao(encontrado));
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<Object> atualizarAssociado(@PathVariable Long id, @RequestBody AssociadoDadosAtualizacao dados) {
-		//Busca o associado no banco de dados é retornado um Optional
-		Optional<Associado> associado = service.buscarPeloId(id);
-		//Caso não encontre o associado retorna
-		if (associado.isEmpty()){
-			return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum associado");
-		}
-		Associado encontrado = associado.get();
+		//Busca o associado no banco de dados é retornado um Optional, validação feita na service
+		Associado encontrado = service.buscarPeloId(id);
 		AssociadoDadosExibicao atualizado = service.atualizar(encontrado, dados);
 		return ResponseEntity.ok(atualizado);
 	}
@@ -84,15 +70,9 @@ public class AssociadoController {
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Object> excluir(@PathVariable Long id){
-		//Busca o associado no banco de dados é retornado um Optional
-		Optional<Associado> associado = service.buscarPeloId(id);
-		//Caso não encontre o associado retorna 404
-		if (associado.isEmpty()){
-			return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum associado");
-		}
-		Associado encontrado = associado.get();
+		//Busca o associado no banco de dados é retornado um Optional, validação feita na service
+		Associado encontrado = service.buscarPeloId(id);
 		service.excluir(encontrado);
-
 		return ResponseEntity.ok().build();
 	}
 

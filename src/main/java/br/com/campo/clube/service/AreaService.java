@@ -2,6 +2,7 @@ package br.com.campo.clube.service;
 
 import br.com.campo.clube.dto.AreaDadosCadastro;
 import br.com.campo.clube.dto.AreaDadosExibicao;
+import br.com.campo.clube.exceptions.ParametroInvalidoException;
 import br.com.campo.clube.model.Area;
 
 import br.com.campo.clube.repository.AreaRepository;
@@ -20,24 +21,31 @@ public class AreaService {
 
     @Transactional
     public Area salvar( AreaDadosCadastro dados){
-
         Area area = new Area(dados);
-        return repository.save(area);
+        try {
+         repository.save(area);
+        }catch (ParametroInvalidoException e){
+            throw new ParametroInvalidoException("Não foi possivel salvar a Area. " + e.getMessage());
+        }
+        return area;
     }
 
-
-    public Optional<Area> buscarAreaPeloId(Long id){
-        return repository.findById(id);
+    @Transactional(readOnly = true)
+    public Area buscarAreaPeloId(Long id){
+        return repository.findById(id)
+                .orElseThrow(() -> new ParametroInvalidoException("Nenhuma área encontrada com o id: " + id));
     }
 
+    @Transactional(readOnly = true)
     public List<Area> buscarTodos(){
         return repository.findAll();
     }
-
+    @Transactional
     public void excluir(Area encontrado) {
         repository.delete(encontrado);
     }
 
+    @Transactional
     public AreaDadosExibicao atualizar(Area area, @Valid AreaDadosCadastro dados) {
 
         if (dados.nomeArea() != null && !dados.nomeArea().isBlank()){

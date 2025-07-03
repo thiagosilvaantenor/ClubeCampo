@@ -1,6 +1,5 @@
 package br.com.campo.clube.model;
 
-import br.com.campo.clube.dto.AreaDadosCadastro;
 import br.com.campo.clube.dto.TipoAssociadoDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

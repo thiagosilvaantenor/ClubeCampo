@@ -1,9 +1,7 @@
 package br.com.campo.clube.controller;
 
 import br.com.campo.clube.dto.*;
-import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.model.PagamentoRealizado;
-import br.com.campo.clube.service.CobrancaMensalService;
 import br.com.campo.clube.service.PagamentoRealizadoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,41 +50,25 @@ public class PagamentoRealizadoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PagamentoRealizadoDadosExibicao> exibirPagamento(@PathVariable Long id){
-        //Busca as cobrancas no banco de dados
-       Optional<PagamentoRealizado> pagamento = service.buscarPeloId(id);
-       if (pagamento.isPresent()){
-           //Retorna 200 com os DTOS no body
-           return ResponseEntity.ok(toPagamentoRealizadoDadosExibicao(pagamento.get()));
-       }
-        //Se não retorna badRequest/400
-        return ResponseEntity.badRequest().build();
-
+        //Busca as cobrancas no banco de dados, validação feita na service
+       PagamentoRealizado pagamento = service.buscarPeloId(id);
+       //Retorna 200 com os DTOS no body
+       return ResponseEntity.ok(toPagamentoRealizadoDadosExibicao(pagamento));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> atualizarPagamento(@PathVariable Long id, @RequestBody PagamentoRealizadoDadosCadastro dados) {
-        //Busca o pagamento no banco de dados é retornado um Optional
-        Optional<PagamentoRealizado> pagamento = service.buscarPeloId(id);
-        //Caso não encontre o pagamento retorna
-        if (pagamento.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum pagamento");
-        }
-        PagamentoRealizado encontrado = pagamento.get();
+    public ResponseEntity<Object> atualizarPagamento(@PathVariable Long id, @RequestBody @Valid PagamentoRealizadoDadosCadastro dados) {
+        //Busca o pagamento no banco de dados é retornado um Optional, validação feita na service
+        PagamentoRealizado encontrado = service.buscarPeloId(id);
         PagamentoRealizadoDadosExibicao atualizado = service.atualizar(encontrado, dados);
         return ResponseEntity.ok(atualizado);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> excluir(@PathVariable Long id){
-        //Busca o pagamento no banco de dados é retornado um Optional
-        Optional<PagamentoRealizado> pagamento = service.buscarPeloId(id);
-        //Caso não encontre o pagamento retorna 404
-        if (pagamento.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum pagamento");
-        }
-        PagamentoRealizado encontrado = pagamento.get();
+        //Busca o pagamento no banco de dados é retornado um Optional, validação feita na service
+        PagamentoRealizado encontrado = service.buscarPeloId(id);
         service.excluir(encontrado);
-
         return ResponseEntity.ok().build();
     }
 

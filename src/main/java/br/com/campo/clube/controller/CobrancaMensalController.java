@@ -54,41 +54,35 @@ public class CobrancaMensalController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CobrancaMensalDadosExibicao> exibirCobranca(@PathVariable Long id){
-        //Busca as cobrancas no banco de dados
-       Optional<CobrancaMensal> cobranca = service.buscarPeloId(id);
-       if (cobranca.isPresent()){
-           //Retorna 200 com os DTOS no body
-           return ResponseEntity.ok(toCobrancaMensalDadosExibicao(cobranca.get()));
-       }
-        //Se não retorna badRequest/400
-        return ResponseEntity.badRequest().build();
+        //Busca a cobranca no banco de dados, validação feita na service
+       CobrancaMensal cobranca = service.buscarPeloId(id);
+       //Retorna 200 com o DTO no body
+       return ResponseEntity.ok(toCobrancaMensalDadosExibicao(cobranca));
+    }
 
+    @GetMapping("/associado/{id}")
+    public ResponseEntity<List<CobrancaMensalDadosExibicao>> exibirCobrancaDoAssociado(@PathVariable Long id){
+        //Busca as cobrancas do associado no banco de dados, validação feita na service
+        List<CobrancaMensal> cobrancas = service.buscarPeloAssociado(id);
+        List<CobrancaMensalDadosExibicao> dtos = new ArrayList<>();
+        cobrancas.forEach(cobranca -> dtos.add(toCobrancaMensalDadosExibicao(cobranca)));
+        //Retorna 200 com os DTOS no body
+        return ResponseEntity.ok(dtos);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Object> atualizarCobranca(@PathVariable Long id, @RequestBody CobrancaMensalDadosAtualizacao dados) {
-        //Busca o cobranca no banco de dados é retornado um Optional
-        Optional<CobrancaMensal> cobranca = service.buscarPeloId(id);
-        //Caso não encontre o cobranca retorna
-        if (cobranca.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum cobranca");
-        }
-        CobrancaMensal encontrado = cobranca.get();
+        //Busca o cobranca no banco de dados é retornado um Optional, validação feita na service
+        CobrancaMensal encontrado = service.buscarPeloId(id);
         CobrancaMensalDadosExibicao atualizado = service.atualizar(encontrado, dados);
         return ResponseEntity.ok(atualizado);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> excluir(@PathVariable Long id){
-        //Busca o cobranca no banco de dados é retornado um Optional
-        Optional<CobrancaMensal> cobranca = service.buscarPeloId(id);
-        //Caso não encontre o cobranca retorna 404
-        if (cobranca.isEmpty()){
-            return ResponseEntity.badRequest().body("Erro, id informado não pertence a nenhum cobranca");
-        }
-        CobrancaMensal encontrado = cobranca.get();
+        //Busca o cobranca no banco de dados é retornado um Optional, validação feita na service
+        CobrancaMensal encontrado = service.buscarPeloId(id);
         service.excluir(encontrado);
-
         return ResponseEntity.ok().build();
     }
 

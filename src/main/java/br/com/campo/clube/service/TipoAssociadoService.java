@@ -1,10 +1,10 @@
 package br.com.campo.clube.service;
 
-import br.com.campo.clube.dto.AreaDadosCadastro;
-import br.com.campo.clube.dto.AreaDadosExibicao;
+
 import br.com.campo.clube.dto.TipoAssociadoDTO;
 import br.com.campo.clube.dto.TipoAssociadoDadosExibicao;
-import br.com.campo.clube.model.Area;
+import br.com.campo.clube.exceptions.AssociadoException;
+import br.com.campo.clube.exceptions.ParametroInvalidoException;
 import br.com.campo.clube.model.TipoAssociado;
 import br.com.campo.clube.repository.TipoAssociadoRepository;
 import jakarta.validation.Valid;
@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TipoAssociadoService {
@@ -23,19 +22,27 @@ public class TipoAssociadoService {
 
     @Transactional
     public TipoAssociado salvar(TipoAssociadoDTO dados){
-        TipoAssociado tipo = new TipoAssociado(dados);
-        //Verifica se o nome, que é unico, ja existe no banco de dados
-        if (!repository.findByNome(dados.nome()).isEmpty()){
-            return null;
+        TipoAssociado tipo = null;
+        try{
+            tipo = new TipoAssociado(dados);
+            //Verifica se o nome, que é unico, ja existe no banco de dados
+            if (!repository.findByNome(dados.nome()).isEmpty()){
+                throw new ParametroInvalidoException("Já existe um tipo associado com este nome");
+            }
+            tipo.setAssociados(new ArrayList<>());
+            repository.save(tipo);
+        }catch (AssociadoException e){
+            throw new AssociadoException("Não foi possivel criar o tipoAssociado");
         }
-        tipo.setAssociados(new ArrayList<>());
-        return repository.save(tipo);
-    }
+        return tipo;
 
-    public Optional<TipoAssociado> buscarTipoAssociadoPorId(Long id){
-        return repository.findById(id);
     }
-
+    @Transactional(readOnly = true)
+    public TipoAssociado buscarTipoAssociadoPorId(Long id){
+        return repository.findById(id)
+                .orElseThrow(() -> new ParametroInvalidoException("Nenhum tipoAssociado encontrado com este id: " + id));
+    }
+    @Transactional(readOnly = true)
     public List<TipoAssociado> buscaTodos(){
         return repository.findAll();
     }
@@ -45,14 +52,19 @@ public class TipoAssociadoService {
     }
     @Transactional
     public TipoAssociadoDadosExibicao atualizar(TipoAssociado tipo, @Valid TipoAssociadoDTO dados) {
-        if (dados.nome() != null && !dados.nome().isBlank()){
-            tipo.setNome(dados.nome());
-        }
-        if (dados.valor() != null){
-            tipo.setValor(dados.valor());
-        }
+        try {
 
-        repository.save(tipo);
+            if (dados.nome() != null && !dados.nome().isBlank()){
+                tipo.setNome(dados.nome());
+            }
+            if (dados.valor() != null){
+                tipo.setValor(dados.valor());
+            }
+
+            repository.save(tipo);
+        }catch (AssociadoException e){
+            throw new AssociadoException("Não foi possivel atualizar o tipoAssociado de id: " + tipo.getId());
+        }
         return new TipoAssociadoDadosExibicao(
                 tipo.getId(), tipo.getNome(), tipo.getValor()
         );

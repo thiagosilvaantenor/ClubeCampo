@@ -8,9 +8,11 @@ import br.com.campo.clube.dto.AssociadoDadosAtualizacao;
 import br.com.campo.clube.dto.AssociadoDadosCadastro;
 import br.com.campo.clube.dto.AssociadoDadosExibicao;
 import br.com.campo.clube.dto.TipoAssociadoDadosExibicao;
+import br.com.campo.clube.exceptions.AssociadoException;
 import br.com.campo.clube.model.CobrancaMensal;
 import br.com.campo.clube.model.TipoAssociado;
 import br.com.campo.clube.repository.CobrancaMensalRepository;
+import br.com.campo.clube.repository.ParticipanteTurmaAssociadoRepository;
 import br.com.campo.clube.repository.TipoAssociadoRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,28 +34,51 @@ public class AssociadoService {
 	@Autowired
 	private CobrancaMensalRepository cobrancaRepository;
 
+	@Autowired
+	private ParticipanteTurmaAssociadoRepository participanteTurmaAssociadoRepository;
+
+	@Autowired
+	private DependenteService dependenteService;
+
+	@Transactional
 	public Associado salvar(AssociadoDadosCadastro novo) {
 		Associado associado = new Associado(novo);
-		//Busca o tipo pelo id
-		if(novo.tipoId() != null){
-			TipoAssociado tipo = tipoRepository.getReferenceById(novo.tipoId());
-			associado.setTipo(tipo);
-			tipo.getAssociados().add(associado);
+		try{
+			//Busca o tipo pelo id
+			if(novo.tipoId() != null){
+				TipoAssociado tipo = tipoRepository.getReferenceById(novo.tipoId());
+				associado.setTipo(tipo);
+				tipo.getAssociados().add(associado);
+			} else{
+				throw new AssociadoException("Tipo Id não foi encontrado");
+			}
+			associado.setCarteirinhaBloqueada(false);
+		}catch (AssociadoException e){
+			throw new AssociadoException(e.getMessage());
 		}
-		associado.setCarteirinhaBloqueada(false);
 		return repository.save(associado);
 	}
-	
+	@Transactional(readOnly = true)
 	public List<Associado> buscarTodos(){
 		return repository.findAll();
 	}
-
-	public Optional<Associado> buscarPeloId(Long id) {
+	@Transactional(readOnly = true)
+	public Associado buscarPeloId(Long id) {
 		
-		return repository.findById(id);
+		return repository.findById(id).orElseThrow(() -> new AssociadoException("Nenhum associado encontrado com este id: " + id));
 	}
 
+	@Transactional
     public void excluir(Associado encontrado) {
+		//Verifica se ele tem dependentes
+		if (!dependenteService.buscarPorAssociado(encontrado.getId()).isEmpty()){
+			throw new AssociadoException("Associado tem dependentes, exclua-os primeiro para poder exclui-lo");
+		}
+		//Verifica se existe inscrições em turmas, se sim pede para excluir elas primeiro
+		if (!participanteTurmaAssociadoRepository.findByAssociadoId(encontrado.getId()).isEmpty()){
+			throw new AssociadoException
+					("Associado tem inscrições em turmas, exclua elas primeira para poder excluir o associado");
+		}
 		repository.delete(encontrado);
     }
 
@@ -70,6 +95,7 @@ public class AssociadoService {
 			associado.setRg(dados.rg());
 		}
 		if (dados.tipoId() != null ) {
+
 			TipoAssociado tipo = tipoRepository.getReferenceById(dados.tipoId());
 			if (tipo != null){
 				//Remove o associado da lista que esta em tipo (antigo)
@@ -78,6 +104,8 @@ public class AssociadoService {
 				associado.setTipo(tipo);
 				//Add associado ao novo tipo
 				tipo.getAssociados().add(associado);
+			} else {
+				throw new AssociadoException("Tipo Associado não encontrado");
 			}
 		}
 		if (dados.cep() != null && !dados.cep().isBlank()){
@@ -153,11 +181,9 @@ public class AssociadoService {
 		//Se for maior ou igual a 5 a carteirinha do associado é bloqueada
 		if(quantidade >= 5){
 			associado.setCarteirinhaBloqueada(true);
-			System.out.println(associado.getCarteirinhaBloqueada());
 			repository.save(associado);
 		}
 		//retorna a quantidade de inadimplências
-		System.out.println(associado.getCarteirinhaBloqueada());
 		return quantidade;
 
 	}
